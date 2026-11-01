@@ -1,10 +1,13 @@
-﻿namespace ApplicationTracker
+﻿using JobApplicationTracker;
+
+namespace ApplicationTracker
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            CollectionsPractice practice = new CollectionsPractice();
+            practice.practiceList();
         }
     }
 }

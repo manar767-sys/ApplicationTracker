@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Disney\\source\\repos\\ApplicationTracker\\ApplicationTracker.csproj",
+      "projectUniqueName": "C:\\Users\\Disney\\Desktop\\My-Github\\ApplicationTracker\\ApplicationTracker.csproj",
       "projectName": "ApplicationTracker",
-      "projectPath": "C:\\Users\\Disney\\source\\repos\\ApplicationTracker\\ApplicationTracker.csproj",
+      "projectPath": "C:\\Users\\Disney\\Desktop\\My-Github\\ApplicationTracker\\ApplicationTracker.csproj",
       "packagesPath": "C:\\Users\\Disney\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Disney\\source\\repos\\ApplicationTracker\\obj\\",
+      "outputPath": "C:\\Users\\Disney\\Desktop\\My-Github\\ApplicationTracker\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
