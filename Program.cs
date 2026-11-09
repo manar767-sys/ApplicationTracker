@@ -7,7 +7,7 @@ namespace ApplicationTracker
         static void Main(string[] args)
         {
             CollectionsPractice practice = new CollectionsPractice();
-            practice.practiceList();
+            //practice.practiceCollections();
         }
     }
 }

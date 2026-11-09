@@ -8,24 +8,19 @@
     "net10.0": []
   },
   "packageFolders": {
-    "C:\\Users\\Disney\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\Admin\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Disney\\Desktop\\My-Github\\ApplicationTracker\\ApplicationTracker.csproj",
+      "projectUniqueName": "C:\\Users\\Admin\\source\\repos\\ApplicationTracker\\ApplicationTracker.csproj",
       "projectName": "ApplicationTracker",
-      "projectPath": "C:\\Users\\Disney\\Desktop\\My-Github\\ApplicationTracker\\ApplicationTracker.csproj",
-      "packagesPath": "C:\\Users\\Disney\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Disney\\Desktop\\My-Github\\ApplicationTracker\\obj\\",
+      "projectPath": "C:\\Users\\Admin\\source\\repos\\ApplicationTracker\\ApplicationTracker.csproj",
+      "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Admin\\source\\repos\\ApplicationTracker\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\Disney\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
