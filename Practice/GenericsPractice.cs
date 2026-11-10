@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ApplicationTracker
+namespace ApplicationTracker.Practice
 {
     //whre T: class means that the generic type T must be a reference type (class). This constraint ensures that T cannot be a value type (like int, float, etc.) or a struct. It allows the Any<T> class to work specifically with objects that are instances of classes, enabling features like nullability and reference semantics.
     public class Any<T> where T: class
     {
-        public T[]? _items;
+        public T[] _items;
         public void Add(T item)
         {
             if (_items == null)
@@ -62,8 +62,8 @@ namespace ApplicationTracker
     public class Person
     {
         public int id;
-        public string? firstName;
-        public string? lastName;
+        public string firstName;
+        public string lastName;
         public override string ToString()
         {
             return $"{firstName} {lastName} (ID: {id})";
