@@ -39,6 +39,7 @@ namespace ApplicationTracker.Services
 
             company.Status = newStatus;
         }
+        //H2: pop
         public bool UndoLastChange()
         {
             if (statusChangeStack.Count == 0)
