@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Text;
 using ApplicationTracker.Data;
+using ApplicationTracker.Menu;
 using ApplicationTracker.Models;
 using ApplicationTracker.Practice;
 using ApplicationTracker.Services;
@@ -35,39 +36,8 @@ namespace ApplicationTracker
 
             seedingData.SeedData(companyService, recruiterService, jobService, candidateService);
 
-            ApplicationService applicationService =
-     new ApplicationService(jobService, candidateService, companyService);
-
-            try
-            {
-                applicationService.Apply(1, 1);     // candidate 1 applies to job 1
-                Console.WriteLine("Applied.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine( ex.Message);
-            }
-
-            try
-            {
-                applicationService.Apply(1, 1);     // candidate 1 applies to job 1
-                Console.WriteLine("Applied.");
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine(e);
-            }
-
-            applicationService.GetAll().ToList().ForEach(a =>
-            {
-                Console.WriteLine($"Application: {a.Id}, CandidateId: {a.CandidateId}, JobId: {a.JobId}, Status: {a.Status}");
-            });
-
-
-
-
-
-
+            MenuHandler menuHandler = new MenuHandler(companyService, recruiterService, candidateService, jobService, new ApplicationService(jobService, candidateService, companyService));
+            menuHandler.DisplayMenu();
 
 
 

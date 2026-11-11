@@ -59,6 +59,9 @@ namespace ApplicationTracker.Services
 
             throw new ArgumentException("Item not found");
         }
-
+        public override List<Job> GetAll()
+        {
+            return jobsById.Values.ToList();
+        }
     }
 }
