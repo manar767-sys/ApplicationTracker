@@ -12,7 +12,7 @@ namespace ApplicationTracker.Services
         private readonly CandidateService candidateService;
         private readonly CompanyService companyService;
 
-        // H1: remembers every (job, candidate) pair that already applied
+        // H1:  every (job, candidate) pair that already applied(uniquness constraint)
         private readonly HashSet<(int JobId, int CandidateId)> appliedPairs =
             new HashSet<(int JobId, int CandidateId)>();
 

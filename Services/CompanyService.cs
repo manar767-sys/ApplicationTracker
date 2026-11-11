@@ -9,6 +9,8 @@ namespace ApplicationTracker.Services
 {
     public class CompanyService : DataStore<Company>
     {
+        //not to be reassigned, so readonly
+        private readonly Stack<(int CompanyId, CompanyStatus OldStatus)> statusChangeStack = new Stack<(int, CompanyStatus)>();
         public CompanyService()
         {
         }
@@ -24,17 +26,31 @@ namespace ApplicationTracker.Services
         {
             Company company = GetById(companyId);   // throws "Item not found" if no company has this Id
 
-            if (company.Status != CompanyStatus.Pending)
-                throw new InvalidOperationException(
-                    "Only a company that is Pending can change its status.");
+            bool allowed =
+                (company.Status == CompanyStatus.Pending && newStatus != CompanyStatus.Pending)
+                || (company.Status == CompanyStatus.Approved && newStatus == CompanyStatus.Pending);
 
-            if (newStatus == CompanyStatus.Pending)
+            if (!allowed)
                 throw new InvalidOperationException(
-                    "The new status must be Approved or Rejected. Not Pending");
+                    $"A company cannot change from {company.Status} to {newStatus}.");
+
+            // H2: push
+            statusChangeStack.Push((companyId, company.Status));
 
             company.Status = newStatus;
         }
+        public bool UndoLastChange()
+        {
+            if (statusChangeStack.Count == 0)
+                return false;                               // nothing to undo, not an error
 
+            var lastChange = statusChangeStack.Pop();       // most recent change first
+
+            Company company = GetById(lastChange.CompanyId);
+            company.Status = lastChange.OldStatus;          
+
+            return true;
+        }
         //E3
         public List<Company> ListByStatus(CompanyStatus status)
         {
