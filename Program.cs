@@ -47,12 +47,6 @@ namespace ApplicationTracker
                     CompanyId = 3,        // the Pending company
                     RecruiterId = 3
                 });
-                Console.WriteLine("Added (this should NOT happen)");
-            }
-            catch (IndexOutOfRangeException ex)
-            {
-                // Runs only if an array index is out of bounds
-                Console.WriteLine($"Index error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -65,6 +59,15 @@ namespace ApplicationTracker
                 Console.WriteLine("Execution finished.");
             }
 
+
+            try
+            {
+                companyService.ChangeStatus(99, CompanyStatus.Approved);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e);
+            }
 
 
 
