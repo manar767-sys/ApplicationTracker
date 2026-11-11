@@ -5,11 +5,13 @@ namespace ApplicationTracker.Data
 {
     public class DataStore<T> : IDataStore<T> where T : class, IEntity
     {
-        private List<T> items;
-        private int nextId = 1; // To keep track of the next unique ID
-        public DataStore()
+        private protected List<T> _items = new List<T>();
+        private protected int nextId = 1; // To keep track of the next unique ID
+
+ 
+
+        public DataStore( )
         {
-            this.items = new List<T>();
         }
 
         public  virtual void Add(T item)
@@ -19,17 +21,17 @@ namespace ApplicationTracker.Data
                 throw new ArgumentNullException(nameof(item), "Item cannot be null");
             }
             item.Id = nextId++; // Assign a unique ID to the item
-            items.Add(item);
+            _items.Add(item);
         }
 
         public  virtual List<T> GetAll()
         {
-            return new List<T>(items);
+            return new List<T>(_items);
         }
 
         public  virtual T GetById(int id)
         {
-            foreach (var item in items)
+            foreach (var item in _items)
             {
                 if (item.Id == id)
                 {
@@ -45,11 +47,11 @@ namespace ApplicationTracker.Data
             {
                 throw new ArgumentNullException(nameof(item), "Item cannot be null");
             }
-            if (!items.Contains(item))
+            if (!_items.Contains(item))
             {
                 throw new ArgumentException("Item not found");
             }
-            items.Remove(item);
+            _items.Remove(item);
         }
 
         public  virtual void Update(T item)
@@ -59,10 +61,10 @@ namespace ApplicationTracker.Data
                 throw new ArgumentNullException(nameof(item), "Item cannot be null");
             }
             var existingItem = GetById(item.Id);
-            var index = items.IndexOf(existingItem);
+            var index = _items.IndexOf(existingItem);
             if (index != -1)
             {
-                items[index] = item;
+                _items[index] = item;
             }
             else
             {

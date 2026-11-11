@@ -41,7 +41,7 @@ namespace ApplicationTracker.Models
 
         public override string ToString()
         {
-            return $"{Title}: {Location}:{IsOpen}:{CompanyId}:{RecruiterId}";
+            return $"job title is {Title}, locatin in {Location}, is Open:{IsOpen}, companyId:{CompanyId}, recruiterId:{RecruiterId}";
             ;
         }
     }

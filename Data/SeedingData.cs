@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using ApplicationTracker.Models;
 
 namespace ApplicationTracker.Data
@@ -38,5 +37,25 @@ namespace ApplicationTracker.Data
             new Candidate { Id = 4, FullName = "Youssef Adel", Email = "youssef.adel@mail.com" },
             new Candidate { Id = 5, FullName = "Mona Samir",   Email = "mona.samir@mail.com" }
         };
+
+        public void SeedData(DataStore<Company> companyStore, DataStore<Recruiter> recruiterStore, DataStore<Job> jobStore, DataStore<Candidate> candidateStore)
+        {
+            foreach (var company in Companies)
+            {
+                companyStore.Add(company);
+            }
+            foreach (var recruiter in Recruiters)
+            {
+                recruiterStore.Add(recruiter);
+            }
+            foreach (var job in Jobs)
+            {
+                jobStore.Add(job);
+            }
+            foreach (var candidate in Candidates)
+            {
+                candidateStore.Add(candidate);
+            }
+        }
     }
 }

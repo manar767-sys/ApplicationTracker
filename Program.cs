@@ -1,7 +1,9 @@
-﻿using System.Text;
+﻿using System.Linq.Expressions;
+using System.Text;
 using ApplicationTracker.Data;
 using ApplicationTracker.Models;
 using ApplicationTracker.Practice;
+using ApplicationTracker.Services;
 using static System.Net.WebRequestMethods;
 
 namespace ApplicationTracker
@@ -19,14 +21,56 @@ namespace ApplicationTracker
             //people.PrintItems();
             //Console.WriteLine($"Count of people: {people.Count()}");
 
-            //sprint one
 
-            //(remove the first company, add a fourth, and the new Id must be 4) and check 3(GetById(99) throws “Item not found”).
-            DataStore<Company> companyStore = new DataStore<Company>();
-            //companyStore.Remove(companyStore.GetById(1));
-            companyStore.Add(new Company { Name = "Company D" });
-            //companyStore.GetById(99); // This will throw an exception since there is no company with Id 99
-            companyStore.GetAll().ForEach(c => Console.WriteLine($"Company Id: {c.Id}, Name: {c.Name}"));
+            //project for sprint one
+
+
+            //passing services 
+            SeedingData seedingData = new SeedingData();
+            CompanyService companyService = new CompanyService();
+            RecruiterService recruiterService = new RecruiterService();
+            CandidateService candidateService = new CandidateService();
+            JobService jobService = new JobService(companyService);
+
+            seedingData.SeedData(companyService, recruiterService, jobService, candidateService);
+
+            try
+            {
+                jobService.Add(new Job
+                {
+                    Title = "Test Job",
+                    Description = "Test",
+                    Salary = 50000,
+                    Location = "Cairo",
+                    IsOpen = true,
+                    PostedDate = new DateTime(2026, 11, 1),
+                    CompanyId = 3,        // the Pending company
+                    RecruiterId = 3
+                });
+                Console.WriteLine("Added (this should NOT happen)");
+            }
+            catch (IndexOutOfRangeException ex)
+            {
+                // Runs only if an array index is out of bounds
+                Console.WriteLine($"Index error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                // Catches any other unexpected exceptions
+                Console.WriteLine($"General error: {ex.Message}");
+            }
+            finally
+            {
+                // Always runs, whether an exception occurred or not
+                Console.WriteLine("Execution finished.");
+            }
+
+
+
+
+
+
+
 
 
 
