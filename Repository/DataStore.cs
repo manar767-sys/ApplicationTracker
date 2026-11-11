@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using ApplicationTracker.Models;
-using ApplicationTracker.Practice.Data;
 using ApplicationTracker.Repository;
 namespace ApplicationTracker.Data
 {
@@ -25,10 +24,15 @@ namespace ApplicationTracker.Data
 
         T IDataStore<T>.GetById(int id)
         {
-            throw new NotImplementedException();
+            foreach (T item in _items)
+            {
+                if (item.Id == id)
+                    return item;
+            }
+            return null;   
         }
 
-        void IDataStore<T>.Remove(T item)
+            void IDataStore<T>.Remove(T item)
         {
             throw new NotImplementedException();
         }

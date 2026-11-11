@@ -8,7 +8,6 @@ namespace ApplicationTracker.Services
 {
     public class JobService
     {
-        private readonly Dictionary<int, Job> jobsById;
         public JobService()
         {
         

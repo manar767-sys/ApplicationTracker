@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ApplicationTracker.Data;
 using ApplicationTracker.Models;
 using ApplicationTracker.Services;
 
-namespace ApplicationTracker.Practice.Data
+namespace ApplicationTracker.Data
 {
     public class SeedingData
     {

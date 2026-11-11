@@ -1,7 +1,5 @@
 ﻿using ApplicationTracker.Models;
 using ApplicationTracker.Practice;
-using ApplicationTracker.Practice.Data;
-using ApplicationTracker.Services;
 
 namespace ApplicationTracker
 {
