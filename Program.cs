@@ -1,6 +1,6 @@
-﻿using ApplicationTracker.Data;
-using ApplicationTracker.Models;
+﻿using ApplicationTracker.Models;
 using ApplicationTracker.Practice;
+using ApplicationTracker.Practice.Data;
 using ApplicationTracker.Services;
 
 namespace ApplicationTracker
@@ -18,8 +18,7 @@ namespace ApplicationTracker
             //people.PrintItems();
             //Console.WriteLine($"Count of people: {people.Count()}");
 
-            SeedingData sd = new SeedingData();
-            sd.
+            
 
 
 

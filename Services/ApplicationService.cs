@@ -6,7 +6,7 @@ using ApplicationTracker.Models;
 
 namespace ApplicationTracker.Services
 {
-    public class ApplicationService : DataStore<Application>
+    public class ApplicationService
     {
     }
 }

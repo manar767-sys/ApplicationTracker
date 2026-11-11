@@ -8,7 +8,7 @@ namespace ApplicationTracker.Models
     public class Job:IEntity
     {
         private decimal _salary;
-
+        [Key]
         public int Id { get; set; }
 
         [Required]

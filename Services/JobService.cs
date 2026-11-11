@@ -6,10 +6,13 @@ using ApplicationTracker.Models;
 
 namespace ApplicationTracker.Services
 {
-    public class JobService : DataStore<Job>
+    public class JobService
     {
+        private readonly Dictionary<int, Job> jobsById;
         public JobService()
         {
+        
         }
+       
     }
 }

@@ -6,12 +6,12 @@ using ApplicationTracker.Models;
 
 namespace ApplicationTracker.Services
 {
-    public class CompanyService: DataStore<Company>
+    public class CompanyService
     {
         public CompanyService()
         {
-            
         }
+ 
 
     }
 }
