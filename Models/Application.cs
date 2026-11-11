@@ -14,5 +14,6 @@ namespace ApplicationTracker.Models
         public int CandidateId { get; set; }
         public DateTime AppliedDate { get; set; }
         public ApplicationStatus Status { get; set; }
+        public Candidate Candidate { get; set; }  
     }
 }

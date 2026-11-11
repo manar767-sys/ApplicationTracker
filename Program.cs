@@ -4,6 +4,7 @@ using ApplicationTracker.Data;
 using ApplicationTracker.Models;
 using ApplicationTracker.Practice;
 using ApplicationTracker.Services;
+using static System.Net.Mime.MediaTypeNames;
 using static System.Net.WebRequestMethods;
 
 namespace ApplicationTracker
@@ -34,40 +35,35 @@ namespace ApplicationTracker
 
             seedingData.SeedData(companyService, recruiterService, jobService, candidateService);
 
+            ApplicationService applicationService =
+     new ApplicationService(jobService, candidateService, companyService);
+
             try
             {
-                jobService.Add(new Job
-                {
-                    Title = "Test Job",
-                    Description = "Test",
-                    Salary = 50000,
-                    Location = "Cairo",
-                    IsOpen = true,
-                    PostedDate = new DateTime(2026, 11, 1),
-                    CompanyId = 3,        // the Pending company
-                    RecruiterId = 3
-                });
+                applicationService.Apply(1, 1);     // candidate 1 applies to job 1
+                Console.WriteLine("Applied.");
             }
             catch (Exception ex)
             {
-                // Catches any other unexpected exceptions
-                Console.WriteLine($"General error: {ex.Message}");
+                Console.WriteLine( ex.Message);
             }
-            finally
-            {
-                // Always runs, whether an exception occurred or not
-                Console.WriteLine("Execution finished.");
-            }
-
 
             try
             {
-                companyService.ChangeStatus(99, CompanyStatus.Approved);
+                applicationService.Apply(1, 1);     // candidate 1 applies to job 1
+                Console.WriteLine("Applied.");
             }
             catch(Exception e)
             {
                 Console.WriteLine(e);
             }
+
+            applicationService.GetAll().ToList().ForEach(a =>
+            {
+                Console.WriteLine($"Application: {a.Id}, CandidateId: {a.CandidateId}, JobId: {a.JobId}, Status: {a.Status}");
+            });
+
+
 
 
 
