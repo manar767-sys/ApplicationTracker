@@ -209,9 +209,9 @@ namespace ApplicationTracker.Menu
             while (!back)
             {
                 Console.WriteLine("\n===== COMPANIES =====");
-                Console.WriteLine("1. List");
-                Console.WriteLine("2. Change status (approve / reject)");
-                Console.WriteLine("3. List by status");
+                Console.WriteLine("1. List comapies");
+                Console.WriteLine("2. Change company status (approve / reject)");
+                Console.WriteLine("3. List comapies by status");
                 Console.WriteLine("4. Undo last status change");
                 Console.WriteLine("0. Back to main menu");
                 Console.Write("Choose an option: ");
@@ -239,7 +239,7 @@ namespace ApplicationTracker.Menu
                     {
                         case "1": PrintCompanies(companyService.GetAll()); break;
                         case "0": back = true; break;
-                        default: Console.WriteLine("Invalid option. Try again and enter a number from"); break;
+                        default: Console.WriteLine("Invalid option. Try again and enter 0 or 1"); break;
                     }
                 }
                 catch (Exception ex)
@@ -519,10 +519,10 @@ private bool IsAvailable(Job job)
             while (!back)
             {
                 Console.WriteLine("\n===== CANDIDATES =====");
-                Console.WriteLine("1. Add");
-                Console.WriteLine("2. Update");
-                Console.WriteLine("3. List");
-                Console.WriteLine("4. Remove");
+                Console.WriteLine("1. Add a candidate");
+                Console.WriteLine("2. Update candidate");
+                Console.WriteLine("3. List candidates");
+                Console.WriteLine("4. Remove candidate");
                 Console.WriteLine("0. Back to main menu");
                 Console.Write("Choose an option: ");
 
@@ -550,10 +550,10 @@ private bool IsAvailable(Job job)
             while (!back)
             {
                 Console.WriteLine("\n===== JOBS =====");
-                Console.WriteLine("1. Add");
-                Console.WriteLine("2. Update");
-                Console.WriteLine("3. List");
-                Console.WriteLine("4. Remove");
+                Console.WriteLine("1. Add a job");
+                Console.WriteLine("2. Update job");
+                Console.WriteLine("3. List jobs");
+                Console.WriteLine("4. Remove job");
                 Console.WriteLine("5. Close a job");
                 Console.WriteLine("0. Back to main menu");
                 Console.Write("Choose an option: ");
@@ -614,10 +614,10 @@ private bool IsAvailable(Job job)
             while (!back)
             {
                 Console.WriteLine("\n===== RECRUITERS =====");
-                Console.WriteLine("1. Add");
-                Console.WriteLine("2. Update");
-                Console.WriteLine("3. List");
-                Console.WriteLine("4. Remove");
+                Console.WriteLine("1. Add a recruiter");
+                Console.WriteLine("2. Update a recruiter");
+                Console.WriteLine("3. List recruiters");
+                Console.WriteLine("4. Remove a recruiter");
                 Console.WriteLine("0. Back to main menu");
                 Console.Write("Choose an option: ");
 

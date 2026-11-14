@@ -25,7 +25,7 @@ namespace ApplicationTracker.Services
 
             bool allowed =
                 (company.Status == CompanyStatus.Pending && newStatus != CompanyStatus.Pending)
-                || (company.Status == CompanyStatus.Approved && newStatus == CompanyStatus.Pending);
+                || (company.Status == CompanyStatus.Approved && newStatus != CompanyStatus.Approved);
 
             if (!allowed)
                 throw new InvalidOperationException(
@@ -36,6 +36,7 @@ namespace ApplicationTracker.Services
 
             company.Status = newStatus;
         }
+       
         //H2: pop
         public bool UndoLastChange()
         {
