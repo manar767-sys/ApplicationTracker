@@ -75,13 +75,12 @@ ApplicationTracker/
 ### Requirements
 - .NET SDK 10 (the project targets `net10.0`)
 - Git
-- Visual Studio 2022 or later (optional)
+- Visual Studio 2022 or later 
 
 ### Setup
 ```
 git clone <repository-url>
-cd ApplicationTracker
-```
+
 
 ### Run from the command line
 ```
@@ -138,13 +137,7 @@ git pull
 git log --oneline
 git commit --amend -m "your new commit message"      # change the last commit message
 git reset --hard                                       # WARNING: throws away all uncommitted changes
-```
 
-Tag the end of the sprint:
-```
-git tag sprint-1
-git push origin sprint-1
-```
 
 ## Known limitations
 - Data is kept in memory only and is lost when the app closes (file saving is Sprint 2).
