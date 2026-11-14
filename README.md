@@ -98,7 +98,7 @@ git commands i used in terminal using Cmder
 git clone <url>
 dotnet new gitignore           to create .gitignore file
 git status
-git commit
+git commit -m "E1: seed data loaded"
 git push
 git pull
 ```
