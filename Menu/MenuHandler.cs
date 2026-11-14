@@ -336,6 +336,76 @@ namespace ApplicationTracker.Menu
                     Cut(j.Location, 15), j.IsOpen ? "Yes" : "No");
             }
         }
+        private void ViewAvailableJobs()
+        {
+            List<Job> available = new List<Job>();
+            foreach (Job job in jobService.GetAll())
+            {
+                if (IsAvailable(job))
+                    available.Add(job);
+            }
+
+            if (available.Count == 0)
+            {
+                Console.WriteLine("No jobs are open for applications right now.");
+                return;
+            }
+            PrintJobs(available);
+        }
+
+        private void ApplyForJob()
+        {
+            if (!TryReadId("Candidate Id: ", out int candidateId)) return;
+            if (FindCandidate(candidateId) == null) return;
+
+            if (!TryReadId("Job Id: ", out int jobId)) return;
+            if (jobService.GetById(jobId) == null) return;
+
+            applicationService.Apply(candidateId, jobId);   // closed job, company not Approved, duplicate -> clear message
+            Console.WriteLine("Application submitted successfully!");
+        }
+
+        private void RemoveApplication()
+        {
+            if (!TryReadId("Application Id to remove: ", out int id)) return;
+
+            Application application;
+            try
+            {
+                application = applicationService.GetById(id);
+            }
+            catch (ArgumentException)
+            {
+                Console.WriteLine($"No application with Id {id} was found.");
+                return;
+            }
+
+            if (!Confirm("Remove this application?"))
+            {
+                Console.WriteLine("Cancelled.");
+                return;
+            }
+            applicationService.Remove(application);
+            Console.WriteLine("Application removed.");
+        }
+
+        private void PrintApplications(List<Application> applications)
+        {
+            if (applications.Count == 0)
+            {
+                Console.WriteLine("No applications found.");
+                return;
+            }
+
+            Console.WriteLine("{0,-5}{1,-20}{2,-22}{3,-12}{4,-12}", "Id", "Candidate", "Job", "Date", "Status");
+            Console.WriteLine(new string('-', 71));
+            foreach (Application a in applications)
+            {
+                Console.WriteLine("{0,-5}{1,-20}{2,-22}{3,-12:yyyy-MM-dd}{4,-12}",
+                    a.Id, Cut(CandidateName(a.CandidateId), 19), Cut(JobTitle(a.JobId), 21),
+                    a.AppliedDate, a.Status);
+            }
+        }
         //a method to fetsh company name
         private string CompanyName(int companyId)
         {
@@ -385,6 +455,34 @@ namespace ApplicationTracker.Menu
                     return false;
             }
         }
+        private Candidate FindCandidate(int id)
+{
+    try { return candidateService.GetById(id); }
+    catch (ArgumentException)
+    {
+        Console.WriteLine($"No candidate with Id {id} was found.");
+        return null;
+    }
+}
+
+private string CandidateName(int candidateId)
+{
+    try { return candidateService.GetById(candidateId).FullName; }
+    catch (ArgumentException) { return "Unknown"; }
+}
+
+private string JobTitle(int jobId)
+{
+    try { return jobService.FindById(jobId).Title; }
+    catch (ArgumentException) { return "Unknown"; }
+}
+
+private bool IsAvailable(Job job)
+{
+    if (!job.IsOpen) return false;
+    try { return companyService.IsApproved(job.CompanyId); }
+    catch (ArgumentException) { return false; }
+}
         private void RecruitersMenu() { Console.WriteLine("Recruiters: coming soon."); }
         private void JobsMenu()
         {
@@ -420,6 +518,36 @@ namespace ApplicationTracker.Menu
             }
         }
         private void CandidatesMenu() { Console.WriteLine("Candidates: coming soon."); }
-        private void ApplicationsMenu() { Console.WriteLine("Applications: coming soon."); }
+        private void ApplicationsMenu()
+        {
+            bool back = false;
+            while (!back)
+            {
+                Console.WriteLine("\n===== APPLICATIONS =====");
+                Console.WriteLine("1. View available jobs");
+                Console.WriteLine("2. Apply for a job");
+                Console.WriteLine("3. List applications");
+                Console.WriteLine("4. Remove an application");
+                Console.WriteLine("0. Back to main menu");
+                Console.Write("Choose an option: ");
+
+                try
+                {
+                    switch (Input())
+                    {
+                        case "1": ViewAvailableJobs(); break;
+                        case "2": ApplyForJob(); break;
+                        case "3": PrintApplications(applicationService.GetAll()); break;
+                        case "4": RemoveApplication(); break;
+                        case "0": back = true; break;
+                        default: Console.WriteLine("Invalid option. Try again."); break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                }
+            }
+        }
     }
 }
