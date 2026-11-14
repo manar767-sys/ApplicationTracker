@@ -386,7 +386,7 @@ namespace ApplicationTracker.Menu
         private void ApplyForJob()
         {
             if (!TryReadId("Candidate Id: ", out int candidateId)) return;
-            if (FindCandidate(candidateId) == null) return;
+            if (candidateService.GetById(candidateId) == null) return;
 
             if (!TryReadId("Job Id: ", out int jobId)) return;
             if (jobService.GetById(jobId) == null) return;
@@ -493,15 +493,7 @@ namespace ApplicationTracker.Menu
                     return false;
             }
         }
-        private Candidate FindCandidate(int id)
-{
-    try { return candidateService.GetById(id); }
-    catch (ArgumentException)
-    {
-        Console.WriteLine($"No candidate with Id {id} was found.");
-        return null;
-    }
-}
+  
 
 private string CandidateName(int candidateId)
 {
@@ -735,7 +727,7 @@ private bool IsAvailable(Job job)
         private void UpdateCandidate()
         {
             if (!TryReadId("Candidate Id to update: ", out int id)) return;
-            Candidate existing = FindCandidate(id);
+            Candidate existing = candidateService.GetById(id);
             if (existing == null) return;
 
             Console.WriteLine("Press Enter to keep the current value.");
@@ -752,7 +744,7 @@ private bool IsAvailable(Job job)
         private void RemoveCandidate()
         {
             if (!TryReadId("Candidate Id to remove: ", out int id)) return;
-            Candidate candidate = FindCandidate(id);
+            Candidate candidate = candidateService.GetById(id);
             if (candidate == null) return;
 
             if (!Confirm($"Remove candidate '{candidate.FullName}'?"))
