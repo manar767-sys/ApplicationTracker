@@ -101,6 +101,8 @@ git status
 git commit -m "E1: seed data loaded"
 git push
 git pull
+git reset --hard
+git commit --amend -m "your new commit message"      to change the last commit message
 ```
 
 - `.gitignore` is created with `dotnet new gitignore`, and it excludes `bin/` and `obj/`.

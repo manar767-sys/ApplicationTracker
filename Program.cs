@@ -25,10 +25,9 @@ namespace ApplicationTracker
 
 
             //sprint2 practice 
-            FuncPractice funcPractice = new FuncPractice();
-            //Console.WriteLine($"Square of 5 is: {funcPractice.squareFunc(5)}");
-            ActionPractice actionPractice = new ActionPractice();
-            //actionPractice.printMessage("Application submitted successfully");
+            DelegatePractice delegatePractice = new DelegatePractice();
+            Console.WriteLine($"Square of 5 is: {delegatePractice.squareFunc(5)}");
+            delegatePractice.printMessage("Application submitted successfully");
 
 
             //project
