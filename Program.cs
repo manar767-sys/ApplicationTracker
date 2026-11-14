@@ -5,8 +5,7 @@ using ApplicationTracker.Menu;
 using ApplicationTracker.Models;
 using ApplicationTracker.Practice;
 using ApplicationTracker.Services;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Net.WebRequestMethods;
+
 
 namespace ApplicationTracker
 {
@@ -24,7 +23,12 @@ namespace ApplicationTracker
             //Console.WriteLine($"Count of people: {people.Count()}");
 
 
-            //project for sprint one
+            //sprint2 practice 
+            FuncPractice funcPractice = new FuncPractice();
+            Console.WriteLine($"Square of 5 is: {funcPractice.squareFunc(5)}");
+
+
+            //project
 
 
             //passing services 
@@ -37,7 +41,7 @@ namespace ApplicationTracker
             seedingData.SeedData(companyService, recruiterService, jobService, candidateService);
 
             MenuHandler menuHandler = new MenuHandler(companyService, recruiterService, candidateService, jobService, new ApplicationService(jobService, candidateService, companyService));
-            menuHandler.DisplayMenu();
+            //menuHandler.DisplayMenu();
 
 
 
