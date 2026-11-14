@@ -24,5 +24,9 @@ namespace ApplicationTracker.Practice
             Console.WriteLine(message);
         };
 
+        // Predicate<T> is a delegate type in C# that represents a method that takes a parameter of type T and returns a boolean value (true or false). It is commonly used for defining methods that evaluate a condition or test whether an object meets certain criteria. The Predicate<T> delegate is part of the System namespace and is often used in scenarios where you want to filter or search for elements in a collection based on specific conditions.
+        public Predicate<int> isEligible = age => age >= 18;
+
+
     }
 }
