@@ -129,6 +129,36 @@ namespace ApplicationTracker.Menu
         {
             if (text == null) return "";
             return text.Length <= width ? text : text.Substring(0, width - 3) + "...";
+
+        }
+
+        private bool TryReadYears(string prompt, out int years)
+        {
+            if (!TryReadInt(prompt, out years)) return false;
+            if (years < 0)
+            {
+                Console.WriteLine("Years of experience cannot be negative.");
+                return false;
+            }
+            return true;
+        }
+
+        // Update helper: pressing Enter keeps the current number
+        private bool TryReadKeepInt(string label, int current, out int value)
+        {
+            Console.Write($"{label} [{current}]: ");
+            string input = Input();
+            if (input.Length == 0)
+            {
+                value = current;
+                return true;
+            }
+            if (!int.TryParse(input, out value))
+            {
+                Console.WriteLine($"'{input}' is not a valid number.");
+                return false;
+            }
+            return true;
         }
         // ===================== Display Menu =====================
         public void DisplayMenu()
@@ -406,6 +436,14 @@ namespace ApplicationTracker.Menu
                     a.AppliedDate, a.Status);
             }
         }
+       
+
+        
+
+        
+
+       
+        
         //a method to fetsh company name
         private string CompanyName(int companyId)
         {
@@ -483,7 +521,37 @@ private bool IsAvailable(Job job)
     try { return companyService.IsApproved(job.CompanyId); }
     catch (ArgumentException) { return false; }
 }
-        private void RecruitersMenu() { Console.WriteLine("Recruiters: coming soon."); }
+        private void CandidatesMenu()
+        {
+            bool back = false;
+            while (!back)
+            {
+                Console.WriteLine("\n===== CANDIDATES =====");
+                Console.WriteLine("1. Add");
+                Console.WriteLine("2. Update");
+                Console.WriteLine("3. List");
+                Console.WriteLine("4. Remove");
+                Console.WriteLine("0. Back to main menu");
+                Console.Write("Choose an option: ");
+
+                try
+                {
+                    switch (Input())
+                    {
+                        case "1": AddCandidate(); break;
+                        case "2": UpdateCandidate(); break;
+                        case "3": PrintCandidates(candidateService.GetAll()); break;
+                        case "4": RemoveCandidate(); break;
+                        case "0": back = true; break;
+                        default: Console.WriteLine("Invalid option. Try again."); break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                }
+            }
+        }
         private void JobsMenu()
         {
             bool back = false;
@@ -517,7 +585,6 @@ private bool IsAvailable(Job job)
                 }
             }
         }
-        private void CandidatesMenu() { Console.WriteLine("Candidates: coming soon."); }
         private void ApplicationsMenu()
         {
             bool back = false;
@@ -547,6 +614,170 @@ private bool IsAvailable(Job job)
                 {
                     Console.WriteLine("Error: " + ex.Message);
                 }
+            }
+        }
+        private void RecruitersMenu()
+        {
+            bool back = false;
+            while (!back)
+            {
+                Console.WriteLine("\n===== RECRUITERS =====");
+                Console.WriteLine("1. Add");
+                Console.WriteLine("2. Update");
+                Console.WriteLine("3. List");
+                Console.WriteLine("4. Remove");
+                Console.WriteLine("0. Back to main menu");
+                Console.Write("Choose an option: ");
+
+                try
+                {
+                    switch (Input())
+                    {
+                        case "1": AddRecruiter(); break;
+                        case "2": UpdateRecruiter(); break;
+                        case "3": PrintRecruiters(recruiterService.GetAll()); break;
+                        case "4": RemoveRecruiter(); break;
+                        case "0": back = true; break;
+                        default: Console.WriteLine("Invalid option. Try again."); break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                }
+            }
+        }
+        private void AddRecruiter()
+        {
+            if (!TryReadText("Name: ", out string name)) return;
+            if (!TryReadText("Email: ", out string email)) return;
+            if (!TryReadId("Company Id: ", out int companyId)) return;
+            if (companyService.GetById(companyId) == null) return;
+
+            Recruiter recruiter = new Recruiter
+            {
+                Name = name,
+                Email = email,             // an invalid email throws and the catch prints the message
+                CompanyId = companyId
+            };
+            recruiterService.Add(recruiter);
+            Console.WriteLine($"Recruiter added with Id {recruiter.Id}.");
+        }
+
+        private void UpdateRecruiter()
+        {
+            if (!TryReadId("Recruiter Id to update: ", out int id)) return;
+            Recruiter existing = recruiterService.GetById(id);
+            if (existing == null) return;
+
+            Console.WriteLine("Press Enter to keep the current value.");
+            string name = ReadKeepText("Name", existing.Name);
+            string email = ReadKeepText("Email", existing.Email);
+            if (!TryReadKeepInt("Company Id", existing.CompanyId, out int companyId)) return;
+            if (companyService.GetById(companyId) == null) return;
+
+            Recruiter updated = new Recruiter
+            {
+                Id = existing.Id,
+                Name = name,
+                Email = email,
+                CompanyId = companyId
+            };
+            recruiterService.Update(updated);
+            Console.WriteLine("Recruiter updated.");
+        }
+
+        private void RemoveRecruiter()
+        {
+            if (!TryReadId("Recruiter Id to remove: ", out int id)) return;
+            Recruiter recruiter = recruiterService.GetById(id);
+            if (recruiter == null) return;
+
+            if (!Confirm($"Remove recruiter '{recruiter.Name}'?"))
+            {
+                Console.WriteLine("Cancelled.");
+                return;
+            }
+            recruiterService.Remove(recruiter);
+            Console.WriteLine("Recruiter removed.");
+        }
+
+        private void PrintRecruiters(List<Recruiter> recruiters)
+        {
+            if (recruiters.Count == 0)
+            {
+                Console.WriteLine("No recruiters found.");
+                return;
+            }
+
+            Console.WriteLine("{0,-5}{1,-20}{2,-30}{3,-18}", "Id", "Name", "Email", "Company");
+            Console.WriteLine(new string('-', 73));
+            foreach (Recruiter r in recruiters)
+            {
+                Console.WriteLine("{0,-5}{1,-20}{2,-30}{3,-18}",
+                    r.Id, Cut(r.Name, 19), Cut(r.Email, 29), Cut(CompanyName(r.CompanyId), 17));
+            }
+        }
+        private void AddCandidate()
+        {
+            if (!TryReadText("Full name: ", out string fullName)) return;
+            if (!TryReadText("Email: ", out string email)) return;
+
+            Candidate candidate = new Candidate
+            {
+                FullName = fullName,
+                Email = email              // an invalid email throws and the catch prints the message
+            };
+            candidateService.Add(candidate);
+            Console.WriteLine($"Candidate added with Id {candidate.Id}.");
+        }
+
+        private void UpdateCandidate()
+        {
+            if (!TryReadId("Candidate Id to update: ", out int id)) return;
+            Candidate existing = FindCandidate(id);
+            if (existing == null) return;
+
+            Console.WriteLine("Press Enter to keep the current value.");
+            Candidate updated = new Candidate
+            {
+                Id = existing.Id,
+                FullName = ReadKeepText("Full name", existing.FullName),
+                Email = ReadKeepText("Email", existing.Email)
+            };
+            candidateService.Update(updated);
+            Console.WriteLine("Candidate updated.");
+        }
+
+        private void RemoveCandidate()
+        {
+            if (!TryReadId("Candidate Id to remove: ", out int id)) return;
+            Candidate candidate = FindCandidate(id);
+            if (candidate == null) return;
+
+            if (!Confirm($"Remove candidate '{candidate.FullName}'?"))
+            {
+                Console.WriteLine("Cancelled.");
+                return;
+            }
+            candidateService.Remove(candidate);
+            Console.WriteLine("Candidate removed.");
+        }
+
+        private void PrintCandidates(List<Candidate> candidates)
+        {
+            if (candidates.Count == 0)
+            {
+                Console.WriteLine("No candidates found.");
+                return;
+            }
+
+            Console.WriteLine("{0,-5}{1,-22}{2,-32}", "Id", "Name", "Email");
+            Console.WriteLine(new string('-', 59));
+            foreach (Candidate c in candidates)
+            {
+                Console.WriteLine("{0,-5}{1,-22}{2,-32}",
+                    c.Id, Cut(c.FullName, 21), Cut(c.Email, 31));
             }
         }
     }
