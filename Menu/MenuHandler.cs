@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ApplicationTracker.Models;
 using ApplicationTracker.Services;
 
 namespace ApplicationTracker.Menu
@@ -119,7 +120,111 @@ namespace ApplicationTracker.Menu
             return true;
         }
 
-        private void CompaniesMenu() { Console.WriteLine("Companies: coming soon."); }
+        private void CompaniesMenu()
+        {
+            bool back = false;
+            while (!back)
+            {
+                Console.WriteLine("\n===== COMPANIES =====");
+                Console.WriteLine("1. List");
+                Console.WriteLine("2. Change status (approve / reject)");
+                Console.WriteLine("3. List by status");
+                Console.WriteLine("4. Undo last status change");
+                Console.WriteLine("0. Back to main menu");
+                Console.Write("Choose an option: ");
+
+                try
+                {
+                    switch (Input())
+                    {
+                        case "1": PrintCompanies(companyService.GetAll()); break;
+                        case "2": ChangeCompanyStatus(); break;
+                        case "3": ListCompaniesByStatus(); break;
+                        case "4": UndoStatusChange(); break;
+                        case "0": back = true; break;
+                        default: Console.WriteLine("Invalid option. Try again."); break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                }
+
+                try
+                {
+                    switch (Input())
+                    {
+                        case "1": PrintCompanies(companyService.GetAll()); break;
+                        case "0": back = true; break;
+                        default: Console.WriteLine("Invalid option. Try again and enter a number from"); break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                }
+            }
+        }
+
+        private void PrintCompanies(List<Company> companies)
+        {
+            if (companies.Count == 0)
+            {
+                Console.WriteLine("No companies found.");
+                return;
+            }
+
+            Console.WriteLine("{0,-5}{1,-20}{2,-16}{3,-16}{4,-10}", "Id", "Name", "Industry", "City", "Status");
+            Console.WriteLine(new string('-', 67));
+            foreach (Company c in companies)
+            {
+                Console.WriteLine("{0,-5}{1,-20}{2,-16}{3,-16}{4,-10}",
+                    c.Id, Cut(c.Name, 19), Cut(c.Industry, 15), Cut(c.City, 15), c.Status);
+            }
+        }
+        private void ChangeCompanyStatus()
+        {
+            if (!TryReadId("Company Id: ", out int id)) return;
+            Company company = companyService.GetById(id);
+            if (company == null) return;
+
+            Console.WriteLine($"Current status: {company.Status}");
+            if (!TryReadStatus(out CompanyStatus newStatus)) return;
+
+            companyService.ChangeStatus(id, newStatus);   // throws a clear message if the change isn't allowed
+            Console.WriteLine($"Status changed to {newStatus}.");
+        }
+
+        private void ListCompaniesByStatus()
+        {
+            if (!TryReadStatus(out CompanyStatus status)) return;
+            PrintCompanies(companyService.ListByStatus(status));
+        }
+
+        private void UndoStatusChange()
+        {
+            if (companyService.UndoLastChange())
+                Console.WriteLine("Last status change undone.");
+            else
+                Console.WriteLine("There is nothing to undo.");
+        }
+
+        private bool TryReadStatus(out CompanyStatus status)
+        {
+            Console.WriteLine("Status: 1. Pending  2. Approved  3. Rejected");
+            status = CompanyStatus.Pending;
+            if (!TryReadInt("Choose: ", out int choice)) return false;
+
+            switch (choice)
+            {
+                case 1: status = CompanyStatus.Pending; return true;
+                case 2: status = CompanyStatus.Approved; return true;
+                case 3: status = CompanyStatus.Rejected; return true;
+                default:
+                    Console.WriteLine("Invalid status choice. Enter 1, 2 or 3.");
+                    return false;
+            }
+        }
         private void RecruitersMenu() { Console.WriteLine("Recruiters: coming soon."); }
         private void JobsMenu() { Console.WriteLine("Jobs: coming soon."); }
         private void CandidatesMenu() { Console.WriteLine("Candidates: coming soon."); }

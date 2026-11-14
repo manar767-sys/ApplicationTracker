@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
+﻿
 using ApplicationTracker.Data;
 using ApplicationTracker.Models;
 

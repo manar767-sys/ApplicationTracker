@@ -43,8 +43,12 @@ namespace ApplicationTracker
             seedingData.SeedData(companyService, recruiterService, jobService, candidateService);
 
             MenuHandler menuHandler = new MenuHandler(companyService, recruiterService, candidateService, jobService, new ApplicationService(jobService, candidateService, companyService));
-            menuHandler.DisplayMenu();
-
+            //menuHandler.DisplayMenu();
+            companyService.ChangeStatus(3, CompanyStatus.Approved);
+            Console.WriteLine(companyService.IsApproved(3));//true
+            Console.WriteLine(companyService.UndoLastChange());//true
+            Console.WriteLine(companyService.IsApproved(3));//false
+            Console.WriteLine(companyService.UndoLastChange());//false
 
 
 
