@@ -43,7 +43,7 @@ namespace ApplicationTracker
             seedingData.SeedData(companyService, recruiterService, jobService, candidateService);
 
             MenuHandler menuHandler = new MenuHandler(companyService, recruiterService, candidateService, jobService, new ApplicationService(jobService, candidateService, companyService));
-            //menuHandler.DisplayMenu();
+            menuHandler.DisplayMenu();
 
 
 
