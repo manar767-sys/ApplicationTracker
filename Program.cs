@@ -31,6 +31,12 @@ namespace ApplicationTracker
             bool result = delegatePractice.isEligible(21);
             //Console.WriteLine(result);
 
+            //a negative value indicates that the first value is less than the second
+            //if they are equal, it returns 0
+            Console.WriteLine($"Comparison of 5 and 10: {delegatePractice.compareNumbers(5, 10)}");
+            Console.WriteLine($"Comparison of 5 and 5: {delegatePractice.compareNumbers(5, 5)}");
+
+
             //project
 
             //passing services 

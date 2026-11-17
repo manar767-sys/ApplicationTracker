@@ -27,6 +27,10 @@ namespace ApplicationTracker.Practice
         // Predicate<T> is a delegate type in C# that represents a method that takes a parameter of type T and returns a boolean value (true or false). It is commonly used for defining methods that evaluate a condition or test whether an object meets certain criteria. The Predicate<T> delegate is part of the System namespace and is often used in scenarios where you want to filter or search for elements in a collection based on specific conditions.
         public Predicate<int> isEligible = age => age >= 18;
 
+        // Comparison<T> is a delegate type in C# that represents a method that compares two objects of type T and returns an integer value indicating their relative order. It is commonly used for defining custom sorting logic or comparison operations. The Comparison<T> delegate is part of the System namespace and is often used in scenarios where you want to sort or order elements in a collection based on specific criteria.
+        public Comparison<int> compareNumbers = (first, second) =>
+        first.CompareTo(second);
+
 
     }
 }
