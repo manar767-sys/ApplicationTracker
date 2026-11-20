@@ -409,6 +409,54 @@ namespace ApplicationTracker.Menu
             Console.WriteLine($"{matches.Count} job(s) found:");
             PrintJobs(matches);
         }
+        private void SortJobs()
+        {
+            Console.WriteLine("Sort by:");
+            Console.WriteLine("1. Salary, low to high");
+            Console.WriteLine("2. Salary, high to low");
+            Console.WriteLine("3. Title, A to Z");
+            if (!TryReadInt("Choose: ", out int choice)) return;
+
+            Comparison<Job> comparison;
+            string description;
+
+            switch (choice)
+            {
+                case 1:
+                    description = "salary, low to high";
+                    comparison = (a, b) =>
+                    {
+                        int result = a.Salary.CompareTo(b.Salary);
+                        return result != 0 ? result : a.Id.CompareTo(b.Id);   // tie: lower Id first
+                    };
+                    break;
+                case 2:
+                    description = "salary, high to low";
+                    comparison = (a, b) =>
+                    {
+                        int result = b.Salary.CompareTo(a.Salary);            // sides swapped
+                        return result != 0 ? result : a.Id.CompareTo(b.Id);
+                    };
+                    break;
+                case 3:
+                    description = "title, A to Z";
+                    comparison = (a, b) =>
+                    {
+                        int result = string.Compare(a.Title, b.Title, StringComparison.OrdinalIgnoreCase);
+                        return result != 0 ? result : a.Id.CompareTo(b.Id);
+                    };
+                    break;
+                default:
+                    Console.WriteLine("Invalid choice. Enter 1, 2 or 3.");
+                    return;
+            }
+
+            List<Job> sorted = jobService.Sort(comparison);    // a sorted copy, the stored jobs are untouched
+
+            Console.WriteLine($"Jobs sorted by {description}:");
+            PrintJobs(sorted);
+        }
+        
         private void ViewAvailableJobs()
         {
             List<Job> available = new List<Job>();
@@ -599,6 +647,7 @@ private bool IsAvailable(Job job)
                 Console.WriteLine("4. Remove job");
                 Console.WriteLine("5. Close a job");
                 Console.WriteLine("6. Search jobs by title/ and by minimum salary");
+                Console.WriteLine("7. Sort jobs");
                 Console.WriteLine("0. Back to main menu");
                 Console.Write("Choose an option: ");
 
@@ -612,6 +661,7 @@ private bool IsAvailable(Job job)
                         case "4": RemoveJob(); break;
                         case "5": CloseJob(); break;
                         case "6": SearchJobs(); break;
+                        case "7": SortJobs(); break;
                         case "0": back = true; break;
                         default: Console.WriteLine("Invalid option. Try again."); break;
                     }
