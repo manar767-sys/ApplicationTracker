@@ -52,7 +52,7 @@ namespace ApplicationTracker.Services
             {
                 JobId = jobId,
                 CandidateId = candidateId,
-                AppliedDate = DateTime.Now,
+                AppliedAt = DateTime.Now,
                 Status = ApplicationStatus.Submitted
             };
 

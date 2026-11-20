@@ -13,6 +13,7 @@ namespace ApplicationTracker.Menu
         private CandidateService candidateService;
         private JobService jobService;
         private ApplicationService applicationService;
+        private CurrentUser currentUser;      // null until someone picks a role
 
         public MenuHandler(CompanyService companyService, RecruiterService recruiterService, CandidateService candidateService, JobService jobService, ApplicationService applicationService)
         {
@@ -168,21 +169,230 @@ namespace ApplicationTracker.Menu
             bool running = true;
             while (running)
             {
-                Console.WriteLine();
-                Console.WriteLine("===== MAIN MENU =====");
-                Console.WriteLine("1. Companies");
-                Console.WriteLine("2. Recruiters");
-                Console.WriteLine("3. Jobs");
-                Console.WriteLine("4. Candidates");
-                Console.WriteLine("5. Applications");
-                Console.WriteLine("6. Exit");
-                Console.Write("Choose an option: ");
+                if (currentUser == null)
+                {
+                    currentUser = SelectUser();
+                    if (currentUser == null) break;          // the user chose Exit
+                }
 
-                running = HandleChoice(Input());
+                if (currentUser.IsAdmin)
+                    running = AdminMainMenu();
+                else
+                    running = DefaultMainMenu();             // recruiter and candidate, until their own menus exist
+            
             }
 
             Console.WriteLine("Goodbye!");
         }
+        private bool DefaultMainMenu()
+        {
+            Console.WriteLine();
+            Console.WriteLine($"===== MAIN MENU ({currentUser.Role}: {currentUser.Name}) =====");
+            Console.WriteLine("1. Companies");
+            Console.WriteLine("2. Recruiters");
+            Console.WriteLine("3. Jobs");
+            Console.WriteLine("4. Candidates");
+            Console.WriteLine("5. Applications");
+            Console.WriteLine("6. Exit");
+            Console.WriteLine("7. Switch user");
+            Console.Write("Choose an option: ");
+
+            return HandleChoice(Input());
+        }
+        private bool AdminMainMenu()
+        {
+            Console.WriteLine();
+            Console.WriteLine("===== ADMIN MENU =====");
+            Console.WriteLine("1. Company approval");
+            Console.WriteLine("2. Recruiters");
+            Console.WriteLine("3. Jobs");
+            Console.WriteLine("4. Candidates");
+            Console.WriteLine("5. Applications");
+            Console.WriteLine("6. Switch user");
+            Console.WriteLine("0. Exit");
+            Console.Write("Choose an option: ");
+
+            switch (Input())
+            {
+                case "1": AdminMenu(); break;
+                case "2": RecruitersMenu(); break;
+                case "3": JobsMenu(); break;
+                case "4": CandidatesMenu(); break;
+                case "5": ApplicationsMenu(); break;
+                case "6": currentUser = null; break;
+                case "0": return false;
+                default: Console.WriteLine("Invalid option. Please try again."); break;
+            }
+            return true;
+        }
+        private void AdminMenu()
+        {
+            bool back = false;
+            while (!back)
+            {
+                Console.WriteLine("\n===== COMPANY APPROVAL =====");
+                Console.WriteLine("1. List companies waiting for approval");
+                Console.WriteLine("2. Approve a company");
+                Console.WriteLine("3. Reject a company");
+                Console.WriteLine("4. List approved companies");
+                Console.WriteLine("5. List rejected companies");
+                Console.WriteLine("6. Undo last status change");
+                Console.WriteLine("7. Manage companies (add, update, remove)");
+                Console.WriteLine("0. Back to admin menu");
+                Console.Write("Choose an option: ");
+
+                try
+                {
+                    switch (Input())
+                    {
+                        case "1": PrintCompanies(companyService.ListByStatus(CompanyStatus.Pending)); break;
+                        case "2": ChangeStatusTo(CompanyStatus.Approved, "approved"); break;
+                        case "3": ChangeStatusTo(CompanyStatus.Rejected, "rejected"); break;
+                        case "4": PrintCompanies(companyService.ListByStatus(CompanyStatus.Approved)); break;
+                        case "5": PrintCompanies(companyService.ListByStatus(CompanyStatus.Rejected)); break;
+                        case "6": UndoStatusChange(); break;
+                        case "7": CompaniesMenu(); break;
+                        case "0": back = true; break;
+                        default: Console.WriteLine("Invalid option. Try again."); break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                }
+            }
+        }
+
+        private void ChangeStatusTo(CompanyStatus newStatus, string pastTense)
+        {
+            if (!TryReadId("Company Id: ", out int id)) return;
+            Company company = FindCompany(id);
+            if (company == null) return;
+
+            Console.WriteLine($"Current status: {company.Status}");
+            companyService.ChangeStatus(id, newStatus);     // refuses changes the rules forbid, with a clear message
+            Console.WriteLine($"Company '{company.Name}' {pastTense}.");
+        }
+        private CurrentUser SelectUser()
+        {
+            while (true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("===== CONTINUE AS =====");
+                Console.WriteLine("1. Admin");
+                Console.WriteLine("2. Recruiter");
+                Console.WriteLine("3. Candidate");
+                Console.WriteLine("0. Exit");
+                Console.Write("Choose an option: ");
+
+                switch (Input())
+                {
+                    case "1":
+                        return new CurrentUser(UserRole.Admin, null, "Admin");
+                    case "2":
+                        {
+                            CurrentUser user = PickRecruiter();
+                            if (user != null) return user;
+                            break;
+                        }
+                    case "3":
+                        {
+                            CurrentUser user = PickCandidate();
+                            if (user != null) return user;
+                            break;
+                        }
+                    case "0":
+                        return null;
+                    default:
+                        Console.WriteLine("Invalid option. Enter 0, 1, 2 or 3.");
+                        break;
+                }
+            }
+        }
+
+        private CurrentUser PickRecruiter()
+        {
+            List<Recruiter> recruiters = recruiterService.GetAll();
+            if (recruiters.Count == 0)
+            {
+                Console.WriteLine("There are no recruiters yet.");
+                return null;
+            }
+
+            PrintRecruiters(recruiters);
+            if (!TryReadId("Your recruiter Id: ", out int id)) return null;
+
+            Recruiter recruiter = FindRecruiter(id);      // prints "No recruiter with Id ... was found."
+            if (recruiter == null) return null;
+
+            return new CurrentUser(UserRole.Recruiter, recruiter.Id, recruiter.Name);
+        }
+       
+
+        private CurrentUser PickCandidate()
+        {
+            List<Candidate> candidates = candidateService.GetAll();
+            if (candidates.Count == 0)
+            {
+                Console.WriteLine("There are no candidates yet.");
+                return null;
+            }
+
+            PrintCandidates(candidates);
+            if (!TryReadId("Your candidate Id: ", out int id)) return null;
+
+            Candidate candidate = FindCandidate(id);
+            if (candidate == null) return null;
+
+            return new CurrentUser(UserRole.Candidate, candidate.Id, candidate.FullName);
+        }
+        //==================================FINDERS=========================================
+        private Recruiter FindRecruiter(int id)
+        {
+            try { return recruiterService.GetById(id); }
+            catch (ArgumentException)
+            {
+                Console.WriteLine($"No recruiter with Id {id} was found.");
+                return null;
+            }
+        }
+        private Company FindCompany(int id)
+        {
+            try { return companyService.GetById(id); }
+            catch (ArgumentException)
+            {
+                Console.WriteLine($"No company with Id {id} was found.");
+                return null;
+            }
+        }
+        private Candidate FindCandidate(int id)
+        {
+            try { return candidateService.GetById(id); }
+            catch (ArgumentException)
+            {
+                Console.WriteLine($"No candidate with Id {id} was found.");
+                return null;
+            }
+        }
+        private Job FindJob(int id)
+        {
+            try { return jobService.GetById(id); }       // E5: Dictionary lookup
+            catch (ArgumentException)
+            {
+                Console.WriteLine($"No job with Id {id} was found.");
+                return null;
+            }
+        }
+        private Application FindApplication(int id)
+        {
+            try { return applicationService.GetById(id); }
+            catch (ArgumentException)
+            {
+                Console.WriteLine($"No application with Id {id} was found.");
+                return null;
+            }
+        }
+
 
         // ===================== choice Handler =====================
 
@@ -196,6 +406,7 @@ namespace ApplicationTracker.Menu
                 case "4": CandidatesMenu(); break;
                 case "5": ApplicationsMenu(); break;
                 case "6": return false;
+                case "7": currentUser = null; break;     // back to "Continue as" on the next round
                 default:
                     Console.WriteLine("Invalid option. Please enter a number from 1 to 6.");
                     break;
@@ -524,7 +735,7 @@ namespace ApplicationTracker.Menu
             {
                 Console.WriteLine("{0,-5}{1,-20}{2,-22}{3,-12:yyyy-MM-dd}{4,-12}",
                     a.Id, Cut(CandidateName(a.CandidateId), 19), Cut(JobTitle(a.JobId), 21),
-                    a.AppliedDate, a.Status);
+                    a.AppliedAt, a.Status);
             }
         }
        
