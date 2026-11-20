@@ -135,7 +135,7 @@ git commit -m "E1: seed data loaded"
 git push
 git pull
 git log --oneline
-git commit --amend -m "your new commit message"      # change the last commit message
+git commit --amend -m "your new commit message"        # change the last commit message
 git reset --hard                                       # WARNING: throws away all uncommitted changes
 
 

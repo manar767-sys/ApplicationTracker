@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Collections;
+using System.Linq.Expressions;
 using System.Text;
 using ApplicationTracker.Data;
 using ApplicationTracker.Menu;
@@ -7,10 +8,15 @@ using ApplicationTracker.Practice;
 using ApplicationTracker.Services;
 
 
+
 namespace ApplicationTracker
 {
     internal class Program
     {
+        static void Notify(object? sender, OrderEventArgs e)
+        {
+            Console.WriteLine($"Order {e.OrderId} created!");
+        }
         static void Main(string[] args)
         {
             CollectionsPractice practice = new CollectionsPractice();
@@ -33,11 +39,58 @@ namespace ApplicationTracker
 
             //a negative value indicates that the first value is less than the second
             //if they are equal, it returns 0
-            Console.WriteLine($"Comparison of 5 and 10: {delegatePractice.compareNumbers(5, 10)}");
-            Console.WriteLine($"Comparison of 5 and 5: {delegatePractice.compareNumbers(5, 5)}");
+            //Console.WriteLine($"Comparison of 5 and 10: {delegatePractice.compareNumbers(5, 10)}");
+            //Console.WriteLine($"Comparison of 5 and 5: {delegatePractice.compareNumbers(5, 5)}");
+
+            //event practice
+            var orderService = new OrderService();
+            orderService.OrderCreated += Notify; //subscribe to the event of order creation
+
+            EventHandler<OrderEventArgs> OrderEventHandler = 
+                (sender, e) => Console.WriteLine($"Order {e.OrderId} created with lambda!");
+
+            //subscribe
+            //orderService.OrderCreated += OrderEventHandler;   //order 101 created with lambda
+            //orderService.CreateOrder(101);    //order 101 created
+
+            //unsubscribe
+            orderService.OrderCreated -= Notify;
+            //orderService.OrderCreated += OrderEventHandler;   //order 101 created with lambda
+
+            //_____________________________________________________________________________________
+            //Event practice with stock price change **Example TWO**
+
+            var Stock = new Stock("Samsung");
+            Stock.Price = 150.00m;
+
+            //subscribe to the PriceChanged event using a lambda expression instead of a named method.**Notify**
+            //This allows us to define the event handler inline without creating a separate method.
+            Stock.PriceChanged += (stock, oldPrice) =>
+            {
+                if(stock.Price > oldPrice)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"Stock {stock.Name} price increased from {oldPrice} to {stock.Price} - up");
+                }
+                else if (stock.Price < oldPrice)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Stock {stock.Name} price decreased from {oldPrice} to {stock.Price} - down");
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine($"Stock {stock.Name} price remains unchanged at {stock.Price}");
+                }
+            };
+
+            // after decalring the subscription, we can now update the stock price and see the event being triggered and handled by the subscribed event handler.
+            Stock.UpdatePriceBy(0.05m); // Increase price by 5%
+            Stock.UpdatePriceBy(-0.02m); // Decrease price by 2%
+            Stock.UpdatePriceBy(0.00m); // No change in price
 
 
-            //project
+            //_____________________________________project_____________________________________________
 
             //passing services 
             SeedingData seedingData = new SeedingData();
@@ -49,7 +102,7 @@ namespace ApplicationTracker
             seedingData.SeedData(companyService, recruiterService, jobService, candidateService);
 
             MenuHandler menuHandler = new MenuHandler(companyService, recruiterService, candidateService, jobService, new ApplicationService(jobService, candidateService, companyService));
-            menuHandler.DisplayMenu();
+            //menuHandler.DisplayMenu();
            
 
 
