@@ -533,14 +533,28 @@ namespace ApplicationTracker.Menu
         private void RemoveJob()
         {
             if (!TryReadId("Job Id to remove: ", out int id)) return;
-            Job job = jobService.GetById(id);
+
+            Job job = FindJob(id);
+
             if (job == null) return;
+
+            // A job cannot be removed if it has existing applications.
+            var appliedCandidates = applicationService.GetAll();
+            foreach (var application in appliedCandidates)
+            {
+                if (application.JobId == id)
+                {
+                    Console.WriteLine("Cannot remove this job because it has existing applications.");
+                    return;
+                }
+            }
 
             if (!Confirm($"Remove job '{job.Title}'?"))
             {
                 Console.WriteLine("Cancelled.");
                 return;
             }
+
             jobService.Remove(job);
             Console.WriteLine("Job removed.");
         }
@@ -688,10 +702,10 @@ namespace ApplicationTracker.Menu
         private void ApplyForJob()
         {
             if (!TryReadId("Candidate Id: ", out int candidateId)) return;
-            if (candidateService.GetById(candidateId) == null) return;
+            if (FindCandidate(candidateId) == null) return;
 
             if (!TryReadId("Job Id: ", out int jobId)) return;
-            if (jobService.GetById(jobId) == null) return;
+            if (FindJob(jobId) == null) return;
 
             applicationService.Apply(candidateId, jobId);   // closed job, company not Approved, duplicate -> clear message
             Console.WriteLine("Application submitted successfully!");
