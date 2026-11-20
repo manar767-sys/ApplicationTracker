@@ -12,6 +12,10 @@ namespace ApplicationTracker.Repository
         public List<T> GetAll();
         public void Update(T item);
         public void Remove(T item);
+        public List<T> Sort(Comparison<T> comparison);
+        public List<T> Find(Predicate<T> predicate);
+
+
 
     }
 }

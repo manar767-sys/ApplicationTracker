@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Linq.Expressions;
-using System.Text;
+﻿
 using ApplicationTracker.Data;
 using ApplicationTracker.Menu;
 using ApplicationTracker.Models;
@@ -42,7 +40,7 @@ namespace ApplicationTracker
             //Console.WriteLine($"Comparison of 5 and 10: {delegatePractice.compareNumbers(5, 10)}");
             //Console.WriteLine($"Comparison of 5 and 5: {delegatePractice.compareNumbers(5, 5)}");
 
-            //event practice
+            //Event practice
             var orderService = new OrderService();
             orderService.OrderCreated += Notify; //subscribe to the event of order creation
 
@@ -85,9 +83,9 @@ namespace ApplicationTracker
             };
 
             // after decalring the subscription, we can now update the stock price and see the event being triggered and handled by the subscribed event handler.
-            Stock.UpdatePriceBy(0.05m); // Increase price by 5%
-            Stock.UpdatePriceBy(-0.02m); // Decrease price by 2%
-            Stock.UpdatePriceBy(0.00m); // No change in price
+            //Stock.UpdatePriceBy(0.05m); // Increase price by 5%
+            //Stock.UpdatePriceBy(-0.02m); // Decrease price by 2%
+            //Stock.UpdatePriceBy(0.00m); // No change in price
 
 
             //_____________________________________project_____________________________________________
@@ -102,8 +100,7 @@ namespace ApplicationTracker
             seedingData.SeedData(companyService, recruiterService, jobService, candidateService);
 
             MenuHandler menuHandler = new MenuHandler(companyService, recruiterService, candidateService, jobService, new ApplicationService(jobService, candidateService, companyService));
-            //menuHandler.DisplayMenu();
-           
+            menuHandler.DisplayMenu();
 
 
 

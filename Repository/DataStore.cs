@@ -8,12 +8,6 @@ namespace ApplicationTracker.Data
         private protected List<T> _items = new List<T>();
         private protected int nextId = 1; // To keep track of the next unique ID
 
- 
-
-        public DataStore( )
-        {
-        }
-
         public  virtual void Add(T item)
         {
             if (item == null)
@@ -71,7 +65,41 @@ namespace ApplicationTracker.Data
                 throw new ArgumentException("Item not found");
             }
         }
+        public List<T> Find(Predicate<T> predicate)
+        {
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate), "Predicate cannot be null");
+            }
+
+            var results = new List<T>();
+
+            foreach (T item in _items)
+            {
+                if (predicate(item))
+                {
+                    results.Add(item);
+                }
+            }
+
+            return results;
         }
+
+        public List<T> Sort(Comparison<T> comparison)
+        {
+            if (comparison == null)
+            {
+                throw new ArgumentNullException(nameof(comparison), "Comparison cannot be null");
+            }
+
+            var sortedItems = new List<T>(_items);
+
+            sortedItems.Sort(comparison);
+
+            return sortedItems;
+        }
+
+    }
     }
 
 

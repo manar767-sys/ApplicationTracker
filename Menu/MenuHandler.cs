@@ -366,6 +366,49 @@ namespace ApplicationTracker.Menu
                     Cut(j.Location, 15), j.IsOpen ? "Yes" : "No");
             }
         }
+        private void SearchJobs()
+        {
+            string keyword = ReadOptionalText("Keyword in the title (Enter to skip): ");
+            string salaryText = ReadOptionalText("Minimum salary (Enter to skip): ");
+
+            bool hasKeyword = keyword.Length > 0;
+            bool hasSalary = salaryText.Length > 0;
+
+            if (!hasKeyword && !hasSalary)
+            {
+                Console.WriteLine("Enter a keyword, a minimum salary, or both.");
+                return;
+            }
+
+            decimal minSalary = 0;
+            if (hasSalary)
+            {
+                if (!decimal.TryParse(salaryText, out minSalary))
+                {
+                    Console.WriteLine($"'{salaryText}' is not a valid number.");
+                    return;
+                }
+                if (minSalary < 0)
+                {
+                    Console.WriteLine("The minimum salary cannot be negative.");
+                    return;
+                }
+            }
+
+            List<Job> matches = jobService.Find(job =>
+                (!hasKeyword || (job.Title != null &&
+                                 job.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase)))
+                && (!hasSalary || job.Salary >= minSalary));
+
+            if (matches.Count == 0)
+            {
+                Console.WriteLine("No jobs match your search.");
+                return;
+            }
+
+            Console.WriteLine($"{matches.Count} job(s) found:");
+            PrintJobs(matches);
+        }
         private void ViewAvailableJobs()
         {
             List<Job> available = new List<Job>();
@@ -555,6 +598,7 @@ private bool IsAvailable(Job job)
                 Console.WriteLine("3. List jobs");
                 Console.WriteLine("4. Remove job");
                 Console.WriteLine("5. Close a job");
+                Console.WriteLine("6. Search jobs by title/ and by minimum salary");
                 Console.WriteLine("0. Back to main menu");
                 Console.Write("Choose an option: ");
 
@@ -567,6 +611,7 @@ private bool IsAvailable(Job job)
                         case "3": PrintJobs(jobService.GetAll()); break;
                         case "4": RemoveJob(); break;
                         case "5": CloseJob(); break;
+                        case "6": SearchJobs(); break;
                         case "0": back = true; break;
                         default: Console.WriteLine("Invalid option. Try again."); break;
                     }
