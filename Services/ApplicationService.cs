@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using ApplicationTracker.Data;
+using ApplicationTracker.Events;
 using ApplicationTracker.Exceptions;
 using ApplicationTracker.Models;
 
@@ -15,6 +15,8 @@ namespace ApplicationTracker.Services
         // H1 / M4: every (job, candidate) pair that already applied
         private readonly HashSet<(int JobId, int CandidateId)> appliedPairs =
             new HashSet<(int JobId, int CandidateId)>();
+        public event EventHandler<ApplicationSubmittedEventArgs> ApplicationSubmitted;
+        public event EventHandler<ApplicationStatusChangedEventArgs> ApplicationStatusChanged;
 
         public ApplicationService(JobService jobService, CandidateService candidateService, CompanyService companyService)
         {
@@ -39,7 +41,7 @@ namespace ApplicationTracker.Services
         public void Apply(int candidateId, int jobId)
         {
             // 1. Candidate exists (throws "Item not found" if not)
-            candidateService.GetById(candidateId);
+            Candidate candidate = candidateService.GetById(candidateId);
 
             // 2. Job exists (throws "Item not found" if not)
             Job job = jobService.FindById(jobId);
@@ -74,6 +76,8 @@ namespace ApplicationTracker.Services
                 appliedPairs.Remove((jobId, candidateId));   // the save failed: don't leave the pair blocked
                 throw;
             }
+
+            ApplicationSubmitted?.Invoke(this, new ApplicationSubmittedEventArgs(application, job, candidate));
         }
 
         // Keep the HashSet in sync when an application is removed
@@ -96,6 +100,30 @@ namespace ApplicationTracker.Services
                     "This job has applications and cannot be removed. You can close it instead.");
 
             jobService.Remove(job, actingRecruiter);
+        }
+        // Only a recruiter of the job's company can review an application
+
+        public void ChangeStatus(int applicationId, ApplicationStatus newStatus, Recruiter actingRecruiter)
+        {
+            Application application = GetById(applicationId);          // throws "Item not found"
+            Job job = jobService.FindById(application.JobId);
+            jobService.EnsureOwnedBy(job, actingRecruiter);            // M5: own company only
+
+            ApplicationStatus oldStatus = application.Status;
+
+            bool allowed =
+                (oldStatus == ApplicationStatus.Submitted && newStatus == ApplicationStatus.UnderReview)
+                || (oldStatus == ApplicationStatus.UnderReview &&
+                    (newStatus == ApplicationStatus.Accepted || newStatus == ApplicationStatus.Rejected));
+
+            if (!allowed)
+                throw new InvalidOperationException(
+                    $"An application cannot change from {oldStatus} to {newStatus}.");
+
+            application.Status = newStatus;                            // GetById returns the stored object
+
+            ApplicationStatusChanged?.Invoke(this,
+                new ApplicationStatusChangedEventArgs(application, oldStatus, newStatus));
         }
     }
 }

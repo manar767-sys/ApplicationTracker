@@ -1,4 +1,5 @@
 ﻿
+using ApplicationTracker.Events;
 using ApplicationTracker.Exceptions;
 using ApplicationTracker.Models;
 using ApplicationTracker.Services;
@@ -14,15 +15,19 @@ namespace ApplicationTracker.Menu
         private ApplicationService applicationService;
         private CurrentUser currentUser;      // null until someone picks a role
 
-        public MenuHandler(CompanyService companyService, RecruiterService recruiterService, CandidateService candidateService, JobService jobService, ApplicationService applicationService)
+        private readonly Notifier notifier;
+
+        public MenuHandler(CompanyService companyService, RecruiterService recruiterService,
+                           CandidateService candidateService, JobService jobService,
+                           ApplicationService applicationService, Notifier notifier)
         {
             this.companyService = companyService;
             this.recruiterService = recruiterService;
             this.candidateService = candidateService;
             this.jobService = jobService;
             this.applicationService = applicationService;
+            this.notifier = notifier;
         }
-
 
         // ===================== INPUT HELPERS =====================
         // Read a line of text from the console with a prompt, and trim whitespace. Returns the entered text.
@@ -275,8 +280,6 @@ namespace ApplicationTracker.Menu
                 return true;
             }
 
-            Console.WriteLine();
-            Console.WriteLine($"===== RECRUITER MENU: {recruiter.Name} ({CompanyName(recruiter.CompanyId)}) =====");
             Console.WriteLine("1. My jobs");
             Console.WriteLine("2. Add a job");
             Console.WriteLine("3. Update a job");
@@ -285,9 +288,10 @@ namespace ApplicationTracker.Menu
             Console.WriteLine("6. Search jobs");
             Console.WriteLine("7. Sort jobs");
             Console.WriteLine("8. Applications for my jobs");
-            Console.WriteLine("9. Switch user");
+            Console.WriteLine("9. Review an application");
+            Console.WriteLine("10. Switch user");
+            Console.WriteLine("11. Toggle notifications");
             Console.WriteLine("0. Exit");
-            Console.Write("Choose an option: ");
 
             try
             {
@@ -301,7 +305,9 @@ namespace ApplicationTracker.Menu
                     case "6": SearchJobs(); break;
                     case "7": SortJobs(); break;
                     case "8": ListApplicationsForMyJobs(recruiter); break;
-                    case "9": currentUser = null; break;
+                    case "9": ReviewApplication(recruiter); break;
+                    case "10": currentUser = null; break;
+                    case "11": ToggleNotifications(); break;
                     case "0": return false;
                     default: Console.WriteLine("Invalid option. Please try again."); break;
                 }
@@ -311,6 +317,45 @@ namespace ApplicationTracker.Menu
                 Console.WriteLine("Error: " + ex.Message);
             }
             return true;
+        }
+        private void ToggleNotifications()
+        {
+            if (notifier.IsOn)
+            {
+                notifier.Unsubscribe();
+                Console.WriteLine("Notifications are now OFF.");
+            }
+            else
+            {
+                notifier.Subscribe();
+                Console.WriteLine("Notifications are now ON.");
+            }
+        }
+        private void ReviewApplication(Recruiter recruiter)
+        {
+            ListApplicationsForMyJobs(recruiter);
+
+            if (!TryReadId("Application Id to review: ", out int id)) return;
+            Application application = FindApplication(id);
+            if (application == null) return;
+
+            Console.WriteLine($"Current status: {application.Status}");
+            Console.WriteLine("New status: 1. UnderReview  2. Accepted  3. Rejected");
+            if (!TryReadInt("Choose: ", out int choice)) return;
+
+            ApplicationStatus newStatus;
+            switch (choice)
+            {
+                case 1: newStatus = ApplicationStatus.UnderReview; break;
+                case 2: newStatus = ApplicationStatus.Accepted; break;
+                case 3: newStatus = ApplicationStatus.Rejected; break;
+                default:
+                    Console.WriteLine("Invalid choice. Enter 1, 2 or 3.");
+                    return;
+            }
+
+            applicationService.ChangeStatus(id, newStatus, recruiter);   // rules, ownership and the event live in the service
+            Console.WriteLine($"Application {id} is now {newStatus}.");
         }
         private bool AdminMainMenu()
         {

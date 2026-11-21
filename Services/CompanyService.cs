@@ -1,5 +1,6 @@
 ﻿
 using ApplicationTracker.Data;
+using ApplicationTracker.Events;
 using ApplicationTracker.Models;
 
 namespace ApplicationTracker.Services
@@ -8,9 +9,8 @@ namespace ApplicationTracker.Services
     {
         //not to be reassigned, so readonly
         private readonly Stack<(int CompanyId, CompanyStatus OldStatus)> statusChangeStack = new Stack<(int, CompanyStatus)>();
-        public CompanyService()
-        {
-        }
+        public event EventHandler<CompanyApprovedEventArgs> CompanyApproved;
+        
 
         public bool IsApproved(int companyId)
         {
@@ -31,10 +31,12 @@ namespace ApplicationTracker.Services
                 throw new InvalidOperationException(
                     $"A company cannot change from {company.Status} to {newStatus}.");
 
-            // H2: push
-            statusChangeStack.Push((companyId, company.Status));
+            statusChangeStack.Push((companyId, company.Status));   // save the OLD status first
 
             company.Status = newStatus;
+
+            if (newStatus == CompanyStatus.Approved)
+                CompanyApproved?.Invoke(this, new CompanyApprovedEventArgs(company));   // <- the raise of company approved event
         }
        
         //H2: pop

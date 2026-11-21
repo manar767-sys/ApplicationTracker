@@ -1,5 +1,6 @@
 ﻿
 using ApplicationTracker.Data;
+using ApplicationTracker.Events;
 using ApplicationTracker.Menu;
 using ApplicationTracker.Models;
 using ApplicationTracker.Practice;
@@ -45,7 +46,7 @@ namespace ApplicationTracker
             var orderService = new OrderService();
             orderService.OrderCreated += Notify; //subscribe to the event of order creation
 
-            EventHandler<OrderEventArgs> OrderEventHandler = 
+            EventHandler<OrderEventArgs> OrderEventHandler =
                 (sender, e) => Console.WriteLine($"Order {e.OrderId} created with lambda!");
 
             //subscribe
@@ -66,7 +67,7 @@ namespace ApplicationTracker
             //This allows us to define the event handler inline without creating a separate method.
             Stock.PriceChanged += (stock, oldPrice) =>
             {
-                if(stock.Price > oldPrice)
+                if (stock.Price > oldPrice)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine($"Stock {stock.Name} price increased from {oldPrice} to {stock.Price} - up");
@@ -91,23 +92,37 @@ namespace ApplicationTracker
 
             //_____________________________________project_____________________________________________
 
-            //passing services 
+            // 1. Create each service once. A service must exist before another one needs it.
             SeedingData seedingData = new SeedingData();
             CompanyService companyService = new CompanyService();
             RecruiterService recruiterService = new RecruiterService();
             CandidateService candidateService = new CandidateService();
             JobService jobService = new JobService(companyService);
-            ApplicationService applicationService = new ApplicationService(jobService, candidateService, companyService);
+            ApplicationService applicationService =
+                new ApplicationService(jobService, candidateService, companyService);
 
+            // 2. Load the fixed seed data (3 companies, 3 recruiters, 6 jobs, 5 candidates)
             seedingData.SeedData(companyService, recruiterService, jobService, candidateService);
 
-            MenuHandler menuHandler = new MenuHandler(companyService, recruiterService, candidateService, jobService, new ApplicationService(jobService, candidateService, companyService));
-            menuHandler.DisplayMenu();
+            // 3. M2: subscribe the notifications once, after seeding
+            Notifier notifier = new Notifier(companyService, applicationService);
+            notifier.Subscribe();
 
+            // 4. Create the menu with the same service objects and the same notifier
+            MenuHandler menuHandler = new MenuHandler(
+                companyService, recruiterService, candidateService,
+                jobService, applicationService, notifier);
 
-
+            try
+            {
+                menuHandler.DisplayMenu();
+            }
+            catch (Exception ex)
+            {
+                // Last safety net: an unexpected error ends the app with a message
+                Console.WriteLine("Unexpected error: " + ex.Message);
+            }
 
         }
-
     }
 }
