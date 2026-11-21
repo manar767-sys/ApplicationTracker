@@ -237,7 +237,7 @@ what soild pricple does the code below break? explain
 
 Answer:
 
-The code above breaks the **Liskov Substitution Principle (LSP)**, which is one of the SOLID principles of object-oriented design. The LSP states that objects of a superclass should be replaceable with objects of a subclass without affecting the correctness of the program.
+The code  above breaks the **Liskov Substitution Principle (LSP)**, which is one of the SOLID principles of object-oriented design. The LSP states that objects of a superclass should be replaceable with objects of a subclass without affecting the correctness of the program.
 
 Here, `IList<int>` promises Add, Insert and RemoveAt, but an array has a fixed size, so those three calls throw `NotSupportedException`. Code that accepts an `IList<int>` cannot tell that it is holding an array, so substituting the array for the interface breaks the program.
 
