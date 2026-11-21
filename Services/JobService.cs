@@ -65,5 +65,50 @@ namespace ApplicationTracker.Services
         {
             return jobsById.Values.ToList();
         }
+        // M5: the job must belong to the acting recruiter's company
+        public void EnsureOwnedBy(Job job, Recruiter actingRecruiter)
+        {
+            if (actingRecruiter == null)
+                throw new ArgumentNullException(nameof(actingRecruiter), "Recruiter cannot be null");
+
+            if (job.CompanyId != actingRecruiter.CompanyId)
+                throw new InvalidOperationException("You can only manage jobs of your own company.");
+        }
+
+        public void Update(Job job, Recruiter actingRecruiter)
+        {
+            if (job == null)
+                throw new ArgumentNullException(nameof(job), "Item cannot be null");
+
+            Job existing = FindById(job.Id);                    // throws "Item not found" if the Id is unknown
+            EnsureOwnedBy(existing, actingRecruiter);
+
+            if (job.CompanyId != existing.CompanyId)
+                throw new InvalidOperationException("A job cannot be moved to another company.");
+
+            Update(job);                                        // the override: list and Dictionary stay in sync
+        }
+
+        public void Close(int jobId, Recruiter actingRecruiter)
+        {
+            Job job = FindById(jobId);
+            EnsureOwnedBy(job, actingRecruiter);
+
+            if (!job.IsOpen)
+                throw new InvalidOperationException("This job is already closed.");
+
+            job.IsOpen = false;                                 // FindById returns the stored object
+        }
+        //overload Remove to ensure the acting recruiter owns the job before allowing removal by the actual Remove method above
+        public void Remove(Job job, Recruiter actingRecruiter)
+        {
+            if (job == null)
+                throw new ArgumentNullException(nameof(job), "Item cannot be null");
+
+            Job existing = FindById(job.Id);
+            EnsureOwnedBy(existing, actingRecruiter);
+
+            Remove(existing);                                   // the override: list and Dictionary stay in sync
+        }
     }
 }

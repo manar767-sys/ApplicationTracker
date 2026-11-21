@@ -4,6 +4,7 @@ using ApplicationTracker.Menu;
 using ApplicationTracker.Models;
 using ApplicationTracker.Practice;
 using ApplicationTracker.Services;
+using static System.Net.Mime.MediaTypeNames;
 
 
 
@@ -96,13 +97,16 @@ namespace ApplicationTracker
             RecruiterService recruiterService = new RecruiterService();
             CandidateService candidateService = new CandidateService();
             JobService jobService = new JobService(companyService);
+            ApplicationService applicationService = new ApplicationService(jobService, candidateService, companyService);
 
             seedingData.SeedData(companyService, recruiterService, jobService, candidateService);
 
             MenuHandler menuHandler = new MenuHandler(companyService, recruiterService, candidateService, jobService, new ApplicationService(jobService, candidateService, companyService));
-            menuHandler.DisplayMenu();
+            //menuHandler.DisplayMenu();
 
 
+            Recruiter r1 = recruiterService.GetById(1);   // TechNova
+            applicationService.RemoveJob(4, r1);
 
 
 

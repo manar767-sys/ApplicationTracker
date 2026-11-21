@@ -84,5 +84,17 @@ namespace ApplicationTracker.Services
             base.Remove(application);                                          // throws first if not found
             appliedPairs.Remove((application.JobId, application.CandidateId)); // same order as in Apply
         }
+        // E6: a job with applications cannot be removed
+        public void RemoveJob(int jobId, Recruiter actingRecruiter)
+        {
+            Job job = jobService.FindById(jobId);               // throws "Item not found"
+            jobService.EnsureOwnedBy(job, actingRecruiter);     // ownership first, so nothing is revealed about other companies' jobs
+
+            if (HasApplications(jobId))
+                throw new InvalidOperationException(
+                    "This job has applications and cannot be removed. You can close it instead.");
+
+            jobService.Remove(job, actingRecruiter);
+        }
     }
 }
