@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ApplicationTracker.Data;
+using ApplicationTracker.Exceptions;
 using ApplicationTracker.Models;
 
 namespace ApplicationTracker.Services
@@ -45,15 +46,15 @@ namespace ApplicationTracker.Services
 
             // 3. Job is open
             if (!job.IsOpen)
-                throw new InvalidOperationException("This job is closed.");
+                throw new JobClosedException(jobId);
 
             // 4. Company is Approved
             if (!companyService.IsApproved(job.CompanyId))
-                throw new InvalidOperationException("This job's company is not Approved.");
+                throw new CompanyNotApprovedException(job.CompanyId);
 
             // 5. M4: HashSet.Add returns false when the pair is already there
             if (!appliedPairs.Add((jobId, candidateId)))
-                throw new InvalidOperationException("This candidate already applied to this job.");
+                throw new DuplicateApplicationException(jobId, candidateId);
 
             // 6. Create and save the application
             Application application = new Application

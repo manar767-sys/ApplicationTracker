@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿
+using ApplicationTracker.Exceptions;
 using ApplicationTracker.Models;
 using ApplicationTracker.Services;
 
@@ -133,17 +132,6 @@ namespace ApplicationTracker.Menu
 
         }
 
-        private bool TryReadYears(string prompt, out int years)
-        {
-            if (!TryReadInt(prompt, out years)) return false;
-            if (years < 0)
-            {
-                Console.WriteLine("Years of experience cannot be negative.");
-                return false;
-            }
-            return true;
-        }
-
         // Update helper: pressing Enter keeps the current number
         private bool TryReadKeepInt(string label, int current, out int value)
         {
@@ -177,12 +165,152 @@ namespace ApplicationTracker.Menu
 
                 if (currentUser.IsAdmin)
                     running = AdminMainMenu();
+                else if (currentUser.IsRecruiter)
+                    running = RecruiterMainMenu();
                 else
-                    running = DefaultMainMenu();             // recruiter and candidate, until their own menus exist
-            
+                    running = CandidateMainMenu();
             }
 
             Console.WriteLine("Goodbye!");
+        }
+        private bool CandidateMainMenu()
+        {
+            Candidate candidate = FindCandidate(currentUser.UserId.Value);
+            if (candidate == null)
+            {
+                currentUser = null;                  // the candidate no longer exists: back to "Continue as"
+                return true;
+            }
+
+            Console.WriteLine();
+            Console.WriteLine($"===== CANDIDATE MENU: {candidate.FullName} =====");
+            Console.WriteLine("1. Available jobs");
+            Console.WriteLine("2. Find a job by Id");
+            Console.WriteLine("3. Search jobs");
+            Console.WriteLine("4. Sort jobs");
+            Console.WriteLine("5. Apply for a job");
+            Console.WriteLine("6. My applications");
+            Console.WriteLine("7. Switch user");
+            Console.WriteLine("0. Exit");
+            Console.Write("Choose an option: ");
+
+            try
+            {
+                switch (Input())
+                {
+                    case "1": ViewAvailableJobs(); break;
+                    case "2": ShowJob(); break;
+                    case "3": SearchJobs(); break;
+                    case "4": SortJobs(); break;
+                    case "5": ApplyAsCandidate(candidate); break;
+                    case "6": ListMyApplications(candidate); break;
+                    case "7": currentUser = null; break;
+                    case "0": return false;
+                    default: Console.WriteLine("Invalid option. Please try again."); break;
+                }
+            }
+            catch (JobClosedException ex)
+            {
+                Console.WriteLine("Cannot apply: " + ex.Message);
+            }
+            catch (CompanyNotApprovedException ex)
+            {
+                Console.WriteLine("Cannot apply: " + ex.Message);
+            }
+            catch (DuplicateApplicationException)
+            {
+                Console.WriteLine("You have already applied to this job.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+            }
+            return true;
+        }
+
+        private void ApplyAsCandidate(Candidate candidate)
+        {
+            try
+            {
+                if (!TryReadId("Job Id: ", out int jobId)) return;
+                if (FindJob(jobId) == null) return;
+
+                applicationService.Apply(candidate.Id, jobId);      // closed job, company not Approved, duplicate -> clear message
+                Console.WriteLine("Application submitted successfully!");
+            }
+            catch (JobClosedException ex)
+            {
+                Console.WriteLine("Cannot apply: " + ex.Message);
+            }
+            catch (CompanyNotApprovedException ex)
+            {
+                Console.WriteLine("Cannot apply: " + ex.Message);
+            }
+            catch (DuplicateApplicationException)
+            {
+                Console.WriteLine("You have already applied to this job.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+            }
+        }
+
+        private void ListMyApplications(Candidate candidate)
+        {
+            List<Application> mine = new List<Application>();
+            foreach (Application application in applicationService.GetAll())
+            {
+                if (application.CandidateId == candidate.Id)
+                    mine.Add(application);
+            }
+            PrintApplications(mine);
+        }
+        private bool RecruiterMainMenu()
+        {
+            Recruiter recruiter = FindRecruiter(currentUser.UserId.Value);
+            if (recruiter == null)
+            {
+                currentUser = null;                  // the recruiter no longer exists: back to "Continue as"
+                return true;
+            }
+
+            Console.WriteLine();
+            Console.WriteLine($"===== RECRUITER MENU: {recruiter.Name} ({CompanyName(recruiter.CompanyId)}) =====");
+            Console.WriteLine("1. My jobs");
+            Console.WriteLine("2. Add a job");
+            Console.WriteLine("3. Update a job");
+            Console.WriteLine("4. Close a job");
+            Console.WriteLine("5. Remove a job");
+            Console.WriteLine("6. Search jobs");
+            Console.WriteLine("7. Sort jobs");
+            Console.WriteLine("8. Applications for my jobs");
+            Console.WriteLine("9. Switch user");
+            Console.WriteLine("0. Exit");
+            Console.Write("Choose an option: ");
+
+            try
+            {
+                switch (Input())
+                {
+                    case "1": ListMyJobs(recruiter); break;
+                    case "2": AddMyJob(recruiter); break;
+                    case "3": UpdateMyJob(recruiter); break;
+                    case "4": CloseMyJob(recruiter); break;
+                    case "5": RemoveMyJob(recruiter); break;
+                    case "6": SearchJobs(); break;
+                    case "7": SortJobs(); break;
+                    case "8": ListApplicationsForMyJobs(recruiter); break;
+                    case "9": currentUser = null; break;
+                    case "0": return false;
+                    default: Console.WriteLine("Invalid option. Please try again."); break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+            }
+            return true;
         }
         private bool DefaultMainMenu()
         {
@@ -216,9 +344,9 @@ namespace ApplicationTracker.Menu
             {
                 case "1": AdminMenu(); break;
                 case "2": RecruitersMenu(); break;
-                case "3": JobsMenu(); break;
+                case "3": AdminJobsMenu(); break;                       
                 case "4": CandidatesMenu(); break;
-                case "5": ApplicationsMenu(); break;
+                case "5": PrintApplications(applicationService.GetAll()); break;   
                 case "6": currentUser = null; break;
                 case "0": return false;
                 default: Console.WriteLine("Invalid option. Please try again."); break;
@@ -262,7 +390,152 @@ namespace ApplicationTracker.Menu
                 }
             }
         }
+        private void AdminJobsMenu()
+        {
+            bool back = false;
+            while (!back)
+            {
+                Console.WriteLine("\n===== JOBS (read only) =====");
+                Console.WriteLine("1. List");
+                Console.WriteLine("2. Find a job by Id");
+                Console.WriteLine("3. Search jobs (title and/or minimum salary)");
+                Console.WriteLine("4. Sort jobs");
+                Console.WriteLine("0. Back to admin menu");
+                Console.Write("Choose an option: ");
 
+                try
+                {
+                    switch (Input())
+                    {
+                        case "1": PrintJobs(jobService.GetAll()); break;
+                        case "2": ShowJob(); break;
+                        case "3": SearchJobs(); break;
+                        case "4": SortJobs(); break;
+                        case "0": back = true; break;
+                        default: Console.WriteLine("Invalid option. Try again."); break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                }
+            }
+        }
+        private void ListMyJobs(Recruiter recruiter)
+        {
+            List<Job> mine = jobService.Find(job => job.CompanyId == recruiter.CompanyId);
+            if (mine.Count == 0)
+            {
+                Console.WriteLine("Your company has no jobs yet.");
+                return;
+            }
+            PrintJobs(mine);
+        }
+        private void ShowJob()
+        {
+            if (!TryReadId("Job Id: ", out int id)) return;
+            Job job = FindJob(id);
+            if (job == null) return;
+
+            Console.WriteLine();
+            Console.WriteLine($"Job {job.Id}: {job.Title}");
+            Console.WriteLine($"Company:     {CompanyName(job.CompanyId)}");
+            Console.WriteLine($"Salary:      {job.Salary:N0}");
+            Console.WriteLine($"Location:    {job.Location}");
+            Console.WriteLine($"Open:        {(job.IsOpen ? "Yes" : "No")}");
+            Console.WriteLine($"Posted:      {job.PostedDate:yyyy-MM-dd}");
+            Console.WriteLine($"Description: {job.Description}");
+        }
+        private void AddMyJob(Recruiter recruiter)
+        {
+            if (!TryReadText("Title: ", out string title)) return;
+            string description = ReadOptionalText("Description: ");
+            if (!TryReadDecimal("Salary: ", out decimal salary)) return;
+            string location = ReadOptionalText("Location: ");
+
+            Job job = new Job
+            {
+                Title = title,
+                Description = description,
+                Salary = salary,
+                Location = location,
+                IsOpen = true,
+                PostedDate = DateTime.Now,
+                CompanyId = recruiter.CompanyId,      // always the recruiter's own company
+                RecruiterId = recruiter.Id
+            };
+            jobService.Add(job);                      // refused if the company is not Approved
+            Console.WriteLine($"Job added with Id {job.Id}.");
+        }
+
+        private void UpdateMyJob(Recruiter recruiter)
+        {
+            if (!TryReadId("Job Id to update: ", out int id)) return;
+            Job existing = FindJob(id);
+            if (existing == null) return;
+            jobService.EnsureOwnedBy(existing, recruiter);      // refuse before asking for any field
+
+            Console.WriteLine("Press Enter to keep the current value.");
+            string title = ReadKeepText("Title", existing.Title);
+            string description = ReadKeepText("Description", existing.Description);
+            if (!TryReadKeepDecimal("Salary", existing.Salary, out decimal salary)) return;
+            string location = ReadKeepText("Location", existing.Location);
+
+            Job updated = new Job
+            {
+                Id = existing.Id,
+                Title = title,
+                Description = description,
+                Salary = salary,
+                Location = location,
+                IsOpen = existing.IsOpen,
+                PostedDate = existing.PostedDate,
+                CompanyId = existing.CompanyId,
+                RecruiterId = existing.RecruiterId
+            };
+            jobService.Update(updated, recruiter);
+            Console.WriteLine("Job updated.");
+        }
+
+        private void CloseMyJob(Recruiter recruiter)
+        {
+            if (!TryReadId("Job Id to close: ", out int id)) return;
+            if (FindJob(id) == null) return;
+            jobService.Close(id, recruiter);
+            Console.WriteLine("Job closed.");
+        }
+
+        private void RemoveMyJob(Recruiter recruiter)
+        {
+            if (!TryReadId("Job Id to remove: ", out int id)) return;
+            Job job = FindJob(id);
+            if (job == null) return;
+            jobService.EnsureOwnedBy(job, recruiter);
+
+            if (!Confirm($"Remove job '{job.Title}'?"))
+            {
+                Console.WriteLine("Cancelled.");
+                return;
+            }
+            applicationService.RemoveJob(id, recruiter);        // refused if the job has applications
+            Console.WriteLine("Job removed.");
+        }
+
+        private void ListApplicationsForMyJobs(Recruiter recruiter)
+        {
+            List<Application> mine = new List<Application>();
+            foreach (Application application in applicationService.GetAll())
+            {
+                try
+                {
+                    Job job = jobService.FindById(application.JobId);
+                    if (job.CompanyId == recruiter.CompanyId)
+                        mine.Add(application);
+                }
+                catch (ArgumentException) { }                   // the job no longer exists: skip it
+            }
+            PrintApplications(mine);
+        }
         private void ChangeStatusTo(CompanyStatus newStatus, string pastTense)
         {
             if (!TryReadId("Company Id: ", out int id)) return;
