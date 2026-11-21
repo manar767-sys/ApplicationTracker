@@ -16,6 +16,7 @@ namespace ApplicationTracker.Practice
 
     public class OrderService
     {
+        //EventHandler<TEventArgs> is for Notifying others when something happened, with a sender and data
         public event EventHandler<OrderEventArgs>? OrderCreated;
 
         public void CreateOrder(int orderId)

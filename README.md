@@ -1,33 +1,52 @@
 # ApplicationTracker
-A job portal in the console. Companies are approved by an admin, recruiters post jobs for their company, and candidates apply. The project practises collections, generics, delegates, events, lambdas, file handling and exceptions. Sprint 1 covers collections, generics and exceptions; delegates, events, lambdas and file handling come in Sprint 2.
+A job portal in the console. Companies are approved by an admin, recruiters post jobs for their company, and candidates apply. The project practises collections, generics, delegates, events, lambdas, file handling and exceptions.
 
 ## About the project
-This is Part 1 (Sprint 1) of the project: the data foundation of the portal. Data lives in memory while the app runs and is loaded from fixed seed data at start: 3 companies, 3 recruiters, 6 jobs and 5 candidates.
+Sprint 1 built the data foundation: models, a generic store, the services and the console menus. Sprint 2 adds role-based menus, job search and sort with delegates, custom exceptions and events. Data lives in memory while the app runs and is loaded from fixed seed data at start: 3 companies, 3 recruiters, 6 jobs and 5 candidates.
 
 ## Features
 
-### Requirement 1: Find a Job
-A user can search for a job using its ID. If a job with that ID exists, the system returns its details. Otherwise, the system reports that the job was not found.
+### Find a job
+A user can look up a job by its Id. If it exists, the job's details are shown. Otherwise the app reports that the job was not found. The lookup uses a `Dictionary<int, Job>` kept in sync with the job list.
 
-### Requirement 2: List Companies by Status
-A user can request companies with a particular status. The system returns all companies whose status matches the requested status. If none match, the result is empty.
+### Company approval
+The admin can list companies waiting for approval, approve or reject a company by Id, list approved companies, list rejected companies, and undo the last status change.
 
-### Requirement 3: Apply to a Job
-A candidate can apply to a job by providing their candidate ID and the job ID.
+### Apply to a job
+A candidate applies by choosing a job (the candidate is the logged-in user). The candidate and the job must exist, the job must be open, its company must be Approved, and the candidate cannot apply to the same job twice. If a rule fails, the app explains why, and nothing is saved.
 
-The candidate and job must exist. The job must be open, and its company must have Approved status. A candidate cannot apply to the same job more than once.
+### Check email availability
+A candidate email must be unique, ignoring letter case. A case-insensitive `HashSet<string>` blocks duplicates when a candidate is added or updated.
 
-If any rule fails, the system must explain why the application was rejected. A rejected attempt must not be saved. If all rules pass, the application is saved and the system reports success.
+### Search and sort jobs
+- **Search** by a keyword in the title, by a minimum salary, or by both at once. Each condition is a `Predicate<Job>` passed to `DataStore<T>.Find`.
+- **Sort** by salary (low to high or high to low) or by title. Each ordering is a `Comparison<Job>` passed to `DataStore<T>.Sort`, which returns a sorted copy and never changes the stored list.
 
-### Requirement 4: Check Email Availability
-A user can check whether an email address is available for a new candidate. Email comparison is case-insensitive. The result is available only if no existing candidate uses that email.
+### Review applications
+A recruiter can move an application of their own company through its statuses.
+
+### Notifications (events)
+The app raises three events and prints a notification for each. Notifications can be switched on and off from the menu.
+
+## Roles and menus
+There is no login. At startup the user chooses a role, and "Switch user" returns to that screen.
+
+| Role | What they can do |
+|---|---|
+| Admin | Company approval (lists by status, approve, reject, undo), manage companies, recruiters and candidates, read-only job lists, search and sort, list applications |
+| Recruiter | Their own company's jobs only: list, add, update, close, remove. Search and sort jobs, list applications for their jobs, review an application |
+| Candidate | Available jobs, find a job by Id, search and sort, apply, list their own applications |
+
+The admin is a role, not a stored entity, so there is no `Admin` class.
 
 ## Business rules
 - A candidate can apply only to a job that is open and belongs to a company with status Approved.
 - A candidate cannot apply to the same job twice.
 - A Pending or Rejected company cannot post new jobs.
+- A recruiter can create, edit, close and remove jobs of their own company only.
+- A job that has applications cannot be removed (it can be closed instead).
 - A candidate email must be unique, ignoring letter case.
-- A recruiter can create, edit, close and remove jobs of their own company only (planned for Sprint 2).
+- Approval happens at the company level. A job posted by a recruiter of an Approved company is live immediately; jobs have no approval step.
 
 ### Company status changes
 | From | To | Allowed |
@@ -36,7 +55,16 @@ A user can check whether an email address is available for a new candidate. Emai
 | Approved | Pending or Rejected | Yes |
 | Rejected | Any | No (Rejected is final) |
 
-Every status change is saved on a Stack, so the last change can be undone. Undo restores the previous status, including a change the normal rules would not allow.
+Every status change is saved on a Stack, so the last change can be undone. Undo restores the previous status, including a change the normal rules would not allow, and it does not raise the approval event.
+
+### Application status changes
+| From | To | Allowed |
+|---|---|---|
+| Submitted | UnderReview | Yes |
+| UnderReview | Accepted or Rejected | Yes |
+| Accepted, Rejected | Any | No (final) |
+
+Only a recruiter of the job's company can change an application's status.
 
 ## Data model
 | Entity | Fields |
@@ -44,30 +72,48 @@ Every status change is saved on a Stack, so the last change can be undone. Undo 
 | Company | Id, Name, Industry, City, Status (Pending, Approved, Rejected) |
 | Recruiter | Id, Name, Email, CompanyId |
 | Job | Id, Title, Description, Salary, Location, IsOpen, PostedDate, CompanyId, RecruiterId |
-| Candidate | Id, FullName, Email, Phone, YearsOfExperience |
-| Application | Id, JobId, CandidateId, AppliedDate, Status (Submitted, UnderReview, Interview, Accepted, Rejected) |
+| Candidate | Id, FullName, Email |
+| Application | Id, JobId, CandidateId, AppliedAt, Status (Submitted, UnderReview, Accepted, Rejected) |
 
 Every model implements `IEntity`, which guarantees an `Id`.
 
 ## Design
-- **Generic store:** `DataStore<T> where T : class, IEntity` provides Add, Update, Remove, GetById and GetAll. The store assigns each item a unique Id from a counter that is never reused.
+- **Generic store:** `DataStore<T> where T : class, IEntity` provides Add, Update, Remove, GetById, GetAll, `Find(Predicate<T>)` and `Sort(Comparison<T>)`. The store assigns each item a unique Id from a counter that is never reused. `Sort` returns a copy, so the stored order never changes.
 - **Services:** `CompanyService`, `RecruiterService`, `JobService`, `CandidateService` and `ApplicationService` inherit from `DataStore<T>` and override methods where a business rule applies.
-- **Dictionary (E5):** `JobService` keeps a `Dictionary<int, Job>` in sync with the job list and uses it to find a job by Id.
-- **HashSet of pairs (H1):** `ApplicationService` keeps a `HashSet<(int JobId, int CandidateId)>` to block duplicate applications.
-- **HashSet of emails:** `CandidateService` keeps a case-insensitive `HashSet<string>` to block duplicate candidate emails.
-- **Stack (H2):** `CompanyService` keeps a `Stack` of (company Id, old status) to undo status changes.
-- **Errors:** a refused action throws an exception with a clear message, and the menus catch it and print the message. "Not found" always throws.
-- **Input:** menus read numbers with `int.TryParse` and `decimal.TryParse`, so wrong input prints a message and returns to the menu instead of crashing.
+- **Dictionary:** `JobService` keeps a `Dictionary<int, Job>` in sync with the job list and uses it to find a job by Id.
+- **HashSet of pairs:** `ApplicationService` keeps a `HashSet<(int JobId, int CandidateId)>`. The return value of `Add` detects a duplicate, and removing an application frees its pair.
+- **HashSet of emails:** `CandidateService` keeps a case-insensitive `HashSet<string>`.
+- **Stack:** `CompanyService` keeps a `Stack` of (company Id, old status) to undo status changes.
+- **Ownership:** `JobService` and `ApplicationService` refuse an action when the job's company is not the acting recruiter's company. The check lives in the services, not only in the menus.
+- **Custom exceptions:** `CompanyNotApprovedException`, `JobClosedException` and `DuplicateApplicationException` inherit from `InvalidOperationException`. They are thrown by the services and caught by the menus, with the specific `catch` blocks before the general one.
+- **Errors and input:** menus read numbers with `int.TryParse` and `decimal.TryParse`, so wrong input prints a message and returns to the menu instead of crashing. "Not found" always throws, and the menus turn it into a message that names the Id.
+
+### Delegates and events
+| Type | Used for | Where |
+|---|---|---|
+| `Predicate<T>` | A yes/no test on one item | `Find`, the job search conditions |
+| `Comparison<T>` | Deciding which of two items comes first | `Sort`, the job sorts |
+| `EventHandler<TEventArgs>` | Notifying others when something happened | The three events below |
+
+| Event | Raised by | When | Data |
+|---|---|---|---|
+| `CompanyApproved` | `CompanyService.ChangeStatus` | After a company has been approved | The company |
+| `ApplicationSubmitted` | `ApplicationService.Apply` | After an application is saved | The application, the job and the candidate |
+| `ApplicationStatusChanged` | `ApplicationService.ChangeStatus` | After an application's status changed | The application, the old status and the new status |
+
+Events are raised only after a successful operation, so a refused action never sends a notification. `Notifier` subscribes with named method handlers and one lambda handler (a counter of submitted applications). `Subscribe` and `Unsubscribe` switch all handlers on and off together, and the "Toggle notifications" menu option uses them.
 
 ## Project structure
 ```
 ApplicationTracker/
-├── Models/        Company, Recruiter, Job, Candidate, Application, IEntity, enums
+├── Models/        Company, Recruiter, Job, Candidate, Application, IEntity, enums, UserRole
 ├── Repository/    IDataStore<T>, DataStore<T>
 ├── Data/          SeedingData
 ├── Services/      CompanyService, RecruiterService, JobService, CandidateService, ApplicationService
-├── Menu/          MenuHandler (console menus)
-└── Program.cs     creates the services once, loads the seed data, starts the menu
+├── Events/        EventArgs classes, Notifier
+├── Exceptions/    CompanyNotApprovedException, JobClosedException, DuplicateApplicationException
+├── Menu/          MenuHandler, CurrentUser
+└── Program.cs     creates the services once, loads the seed data, subscribes the notifier, starts the menu
 ```
 
 ## Setup and run
@@ -75,12 +121,13 @@ ApplicationTracker/
 ### Requirements
 - .NET SDK 10 (the project targets `net10.0`)
 - Git
-- Visual Studio 2022 or later 
+- Visual Studio 2022 or later (optional)
 
 ### Setup
 ```
 git clone <repository-url>
-
+cd ApplicationTracker
+```
 
 ### Run from the command line
 ```
@@ -92,7 +139,7 @@ dotnet run
 Open the `.sln` file and press F5.
 
 ### Using the app
-The main menu has one sub-menu per entity (Companies, Recruiters, Jobs, Candidates, Applications). Each has Add, Update, List and Remove, and Back returns to the main menu. Choose a number and press Enter. Wrong input shows a message and the menu returns, so the app does not crash.
+Choose "Continue as" Admin, Recruiter or Candidate. Recruiters and candidates are picked from the seeded list by Id. Choose a number and press Enter. Wrong input shows a message and the menu returns, so the app does not crash.
 
 ## Test scenarios
 - **Scenario 1:** on startup the seed data exists (3 companies, 3 recruiters, 6 jobs, 5 candidates) and every list menu shows it.
@@ -102,18 +149,26 @@ The main menu has one sub-menu per entity (Companies, Recruiters, Jobs, Candidat
 - **Scenario 5:** updating and removing a job keeps the Dictionary consistent, and typing letters instead of numbers in any menu does not crash the app.
 - **Scenario 6:** a candidate can apply to an open job of an Approved company, applying again is refused, and applying to a closed job is refused.
 - **Scenario 7:** change Company 3 from Pending to Approved, then to Rejected, then Undo twice (Approved, then Pending). A third Undo shows a friendly message and does not crash.
+- **Scenario 8:** (add the text of scenario 8 here)
 
-## Status (Sprint 1)
+## Status
 - [x] E1: sample data loaded at start
 - [x] E2: menus
 - [x] E3: company approval, list by status
-- [x] E4 and H1: apply with refusal rules and duplicate check
+- [x] E4: admin operations on companies
 - [x] E5: Dictionary lookup for jobs
+- [x] E6: apply workflow, jobs with applications cannot be removed
 - [x] M1: generic `DataStore<T>`
+- [x] M2: events with named and lambda handlers, subscribe and unsubscribe
+- [x] M3: `Find` with `Predicate<T>`, `Sort` with `Comparison<T>`, job search and sort
+- [x] M4: duplicate application protection with a `HashSet`
+- [x] M5: recruiters manage only their own company's jobs
+- [x] M7: custom exceptions
 - [x] H2: undo company status changes
-- [x] Candidate email uniqueness (`HashSet<string>`)
+- [ ] M6 and M8: saving and loading data from files
 
 ## Git workflow
+Every day: pull, work, commit, push. One small commit per requirement, with the requirement ID at the start of the message.
 
 Create the repository and connect it from the command line:
 ```
@@ -131,19 +186,29 @@ Commands I used in the terminal (Cmder):
 git clone <url>
 git status
 git add .
-git commit -m "E1: seed data loaded"
+git commit -m "M3: sort jobs by salary and title"
 git push
 git pull
 git log --oneline
-git commit --amend -m "your new commit message"        # change the last commit message
+git commit --amend -m "your new commit message"      # change the last commit message
 git reset --hard                                       # WARNING: throws away all uncommitted changes
+```
 
+Tag the end of each sprint:
+```
+git tag sprint-1
+git push origin sprint-1
+git tag sprint-2
+git push origin sprint-2
+```
 
 ## Known limitations
-- Data is kept in memory only and is lost when the app closes (file saving is Sprint 2).
-- Recruiter ownership of jobs is planned but not yet implemented
-- Removing a company, recruiter, job or candidate does not remove the records that point to it.
-- If a company is removed after a status change, undoing that change fails.
+- Data is kept in memory only and is lost when the app closes.
+- There is no login. A user picks a role and a person from a list, so the person at the keyboard is trusted.
+- Nothing records who approved a company.
+- Removing a company, recruiter, job or candidate does not remove the records that point to it (a job with applications cannot be removed, but other links are not checked).
+- Search and sort show every job, including closed ones and jobs of companies that are not Approved.
+- An event handler that throws would surface as an error in the operation that raised it, so handlers are kept trivial.
 
 ## Session One Assignment (Bonus Question)
 what soild pricple does the code below break? explain
@@ -177,3 +242,4 @@ The code above breaks the **Liskov Substitution Principle (LSP)**, which is one 
 Here, `IList<int>` promises Add, Insert and RemoveAt, but an array has a fixed size, so those three calls throw `NotSupportedException`. Code that accepts an `IList<int>` cannot tell that it is holding an array, so substituting the array for the interface breaks the program.
 
 The root cause is the interface design. `IList<T>` is too wide: it bundles methods that not every implementation can support. This is an Interface Segregation Principle (ISP) problem, and it is what forces the LSP violation. The fix for the first is to split or narrow the interface, and the second disappears.
+
