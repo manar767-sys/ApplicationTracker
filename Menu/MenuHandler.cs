@@ -312,21 +312,6 @@ namespace ApplicationTracker.Menu
             }
             return true;
         }
-        private bool DefaultMainMenu()
-        {
-            Console.WriteLine();
-            Console.WriteLine($"===== MAIN MENU ({currentUser.Role}: {currentUser.Name}) =====");
-            Console.WriteLine("1. Companies");
-            Console.WriteLine("2. Recruiters");
-            Console.WriteLine("3. Jobs");
-            Console.WriteLine("4. Candidates");
-            Console.WriteLine("5. Applications");
-            Console.WriteLine("6. Exit");
-            Console.WriteLine("7. Switch user");
-            Console.Write("Choose an option: ");
-
-            return HandleChoice(Input());
-        }
         private bool AdminMainMenu()
         {
             Console.WriteLine();
