@@ -102,11 +102,7 @@ namespace ApplicationTracker
             seedingData.SeedData(companyService, recruiterService, jobService, candidateService);
 
             MenuHandler menuHandler = new MenuHandler(companyService, recruiterService, candidateService, jobService, new ApplicationService(jobService, candidateService, companyService));
-            //menuHandler.DisplayMenu();
-
-
-            Recruiter r1 = recruiterService.GetById(1);   // TechNova
-            applicationService.RemoveJob(4, r1);
+            menuHandler.DisplayMenu();
 
 
 
