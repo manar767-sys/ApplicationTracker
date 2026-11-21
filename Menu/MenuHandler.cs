@@ -318,6 +318,8 @@ namespace ApplicationTracker.Menu
             }
             return true;
         }
+        //long term and short term subscribtions for memory leak prevention
+
         private void ToggleNotifications()
         {
             if (notifier.IsOn)
