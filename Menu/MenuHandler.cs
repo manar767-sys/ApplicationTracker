@@ -535,18 +535,12 @@ namespace ApplicationTracker.Menu
             if (!TryReadId("Job Id to remove: ", out int id)) return;
 
             Job job = FindJob(id);
-
             if (job == null) return;
 
-            // A job cannot be removed if it has existing applications.
-            var appliedCandidates = applicationService.GetAll();
-            foreach (var application in appliedCandidates)
+            if (applicationService.HasApplications(id))
             {
-                if (application.JobId == id)
-                {
-                    Console.WriteLine("Cannot remove this job because it has existing applications.");
-                    return;
-                }
+                Console.WriteLine("Cannot remove this job because it has existing applications.");
+                return;
             }
 
             if (!Confirm($"Remove job '{job.Title}'?"))
@@ -591,6 +585,7 @@ namespace ApplicationTracker.Menu
                     Cut(j.Location, 15), j.IsOpen ? "Yes" : "No");
             }
         }
+
         private void SearchJobs()
         {
             string keyword = ReadOptionalText("Keyword in the title (Enter to skip): ");
@@ -634,6 +629,7 @@ namespace ApplicationTracker.Menu
             Console.WriteLine($"{matches.Count} job(s) found:");
             PrintJobs(matches);
         }
+
         private void SortJobs()
         {
             Console.WriteLine("Sort by:");

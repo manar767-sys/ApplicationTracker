@@ -50,6 +50,8 @@ namespace ApplicationTracker.Services
             base.Remove(job);               // if this throws, the Dictionary is untouched
             jobsById.Remove(job.Id);
         }
+         
+
         // E5: find a job by Id using the Dictionary, no loop needed here
         //The Dictionary<TKey, TValue>.TryGetValue method in C# safely checks if a key exists and retrieves its value in a single operation. It returns true if the key is found and false if it is not, avoiding a KeyNotFoundException without requiring two separate lookups
         public Job FindById(int id)
