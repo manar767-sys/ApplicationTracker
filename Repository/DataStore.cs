@@ -65,6 +65,7 @@ namespace ApplicationTracker.Data
                 throw new ArgumentException("Item not found");
             }
         }
+        //search func was used in searching by title and/ min salary
         public List<T> Find(Predicate<T> predicate)
         {
             if (predicate == null)

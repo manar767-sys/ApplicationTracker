@@ -919,7 +919,7 @@ namespace ApplicationTracker.Menu
                     return;
                 }
             }
-
+            //find function live in the dataStore class, works generically
             List<Job> matches = jobService.Find(job =>
                 (!hasKeyword || (job.Title != null &&
                                  job.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase)))
@@ -1053,14 +1053,6 @@ namespace ApplicationTracker.Menu
                     a.AppliedAt, a.Status);
             }
         }
-       
-
-        
-
-        
-
-       
-        
         //a method to fetsh company name
         private string CompanyName(int companyId)
         {
