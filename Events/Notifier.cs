@@ -29,6 +29,12 @@ namespace ApplicationTracker.Events
 
 
         // ---------- named method handlers ----------
+
+        //testing for isolate subscriber exceptions with GetInvocationList
+        private void FailingHandler(object sender, ApplicationSubmittedEventArgs e)
+        {
+            //throw new Exception("Mail server is down");
+        }
         public void OnCompanyApproved(object sender, CompanyApprovedEventArgs e)
         {
             Console.WriteLine($"[Notification] Company '{e.Company.Name}' has been approved.");
@@ -50,6 +56,7 @@ namespace ApplicationTracker.Events
             if (IsOn) return;                                   // never subscribe twice
 
             companyService.CompanyApproved += OnCompanyApproved;
+            //applicationService.ApplicationSubmitted += FailingHandler;   // put this line before the other ApplicationSubmitted lines
             applicationService.ApplicationSubmitted += OnApplicationSubmitted;
             applicationService.ApplicationSubmitted += submittedCounter;
             applicationService.ApplicationStatusChanged += OnApplicationStatusChanged;
@@ -61,7 +68,7 @@ namespace ApplicationTracker.Events
             if (!IsOn) return;
 
             companyService.CompanyApproved -= OnCompanyApproved;
-            applicationService.ApplicationSubmitted -= OnApplicationSubmitted;
+            //applicationService.ApplicationSubmitted -= OnApplicationSubmitted;
             applicationService.ApplicationSubmitted -= submittedCounter;
             applicationService.ApplicationStatusChanged -= OnApplicationStatusChanged;
             IsOn = false;

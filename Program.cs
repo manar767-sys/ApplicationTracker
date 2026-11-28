@@ -2,10 +2,8 @@
 using ApplicationTracker.Data;
 using ApplicationTracker.Events;
 using ApplicationTracker.Menu;
-using ApplicationTracker.Models;
 using ApplicationTracker.Practice;
 using ApplicationTracker.Services;
-using static System.Net.Mime.MediaTypeNames;
 
 
 

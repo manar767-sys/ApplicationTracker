@@ -77,7 +77,7 @@ namespace ApplicationTracker.Services
                 throw;
             }
 
-            ApplicationSubmitted?.Invoke(this, new ApplicationSubmittedEventArgs(application, job, candidate));
+            EventRaiser.Raise(ApplicationSubmitted, this, new ApplicationSubmittedEventArgs(application, job, candidate));
         }
 
         // Keep the HashSet in sync when an application is removed
@@ -122,8 +122,8 @@ namespace ApplicationTracker.Services
 
             application.Status = newStatus;                            // GetById returns the stored object
 
-            ApplicationStatusChanged?.Invoke(this,
-                new ApplicationStatusChangedEventArgs(application, oldStatus, newStatus));
+            EventRaiser.Raise(ApplicationStatusChanged, this,
+     new ApplicationStatusChangedEventArgs(application, oldStatus, newStatus));
         }
     }
 }

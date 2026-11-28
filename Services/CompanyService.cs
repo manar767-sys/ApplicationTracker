@@ -36,7 +36,7 @@ namespace ApplicationTracker.Services
             company.Status = newStatus;
 
             if (newStatus == CompanyStatus.Approved)
-                CompanyApproved?.Invoke(this, new CompanyApprovedEventArgs(company));   // <- the raise of company approved event
+                EventRaiser.Raise(CompanyApproved, this, new CompanyApprovedEventArgs(company));
         }
        
         //H2: pop

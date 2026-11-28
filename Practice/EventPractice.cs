@@ -13,7 +13,7 @@ namespace ApplicationTracker.Practice
             OrderId = orderId;
         }
     }
-
+    //publisher
     public class OrderService
     {
         //EventHandler<TEventArgs> is for Notifying others when something happened, with a sender and data
@@ -42,7 +42,7 @@ namespace ApplicationTracker.Practice
         {
             Name = stockName;
         }
-
+        //publisher
         public void UpdatePriceBy(decimal percentChange)
         {
             decimal oldPrice = this.Price;
